@@ -24,15 +24,12 @@ class ScipyIndexer(Indexer):
         self._data = sparse.vstack([self._data, data])
 
     def search(self, queries: sparse.csr_matrix, topk: Optional[int]) -> List[List[str]]:
-        print("queries", queries.toarray())
         scores = queries @ self._data.T
-        print(scores.toarray())
         scores.data[scores.data <= self._threshold] = 0.0
         scores.eliminate_zeros()
         results: List[List[str]] = []
         for row in scores:
-            indices = row.indices[::-1]
-            indices.sort()
+            indices = sorted(row.indices.tolist(), key=lambda index: float(row[0, index]), reverse=True)
             if topk is not None:
                 indices = indices[:topk]
             results.append([self._index_to_id[index] for index in indices])

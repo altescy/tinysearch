@@ -1,5 +1,5 @@
 from importlib.metadata import version
-from typing import Callable, Dict, Iterable, Optional, Sequence
+from typing import Callable, Iterable, Optional, Sequence
 
 from tinysearch.indexers import Indexer, ScipyIndexer  # noqa: F401
 from tinysearch.storages import MemoryStorage, Storage  # noqa: F401

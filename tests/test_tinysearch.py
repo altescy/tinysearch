@@ -8,12 +8,12 @@ def test_version() -> None:
 def test_tinysearch() -> None:
     documents = [
         {"id": "0", "text": "hello there good man !"},
-        {"id": "1", "text": "it is quite windy in yokohama"},
-        {"id": "2", "text": "how is the weather today ?"},
+        {"id": "1", "text": "how is the weather today ?"},
+        {"id": "2", "text": "it is quite windy in yokohama"},
     ]
 
     searcher = tinysearch.from_documents(documents)
-    results = searcher.search("weather windy yokoham")
+    results = searcher.search("weather windy yokohama")
     assert len(results) == 2
-    assert results[0]["id"] == "1"
-    assert results[1]["id"] == "2"
+    assert results[0]["id"] == "2"
+    assert results[1]["id"] == "1"
