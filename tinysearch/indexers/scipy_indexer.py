@@ -5,7 +5,7 @@ from scipy import sparse
 from tinysearch.indexers.indexer import Indexer
 
 
-class ScipyIndexer(Indexer):
+class ScipyIndexer(Indexer[sparse.csr_matrix]):
     def __init__(self, dim: int, threshold: float = 0.0) -> None:
         self._threshold = threshold
         self._data = sparse.csr_matrix((0, dim))

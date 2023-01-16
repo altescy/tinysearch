@@ -8,7 +8,7 @@ from tinysearch.vectorizers.vectorizer import Vectorizer
 from tinysearch.vocabulary import Vocabulary
 
 
-class BM25Vectorizer(Vectorizer):
+class BM25Vectorizer(Vectorizer[sparse.csr_matrix]):
     def __init__(self, vocab: Vocabulary, k1: float = 1.5, b: float = 0.75) -> None:
         super().__init__(vocab)
         self.k1 = k1

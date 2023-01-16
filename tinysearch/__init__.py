@@ -4,7 +4,7 @@ from typing import Callable, Iterable, Optional, Sequence
 from tinysearch.indexers import Indexer, ScipyIndexer  # noqa: F401
 from tinysearch.storages import MemoryStorage, Storage  # noqa: F401
 from tinysearch.tinysearch import TinySearch
-from tinysearch.typing import Document
+from tinysearch.typing import Document, Matrix
 from tinysearch.vectorizers import CountVectorizer, Vectorizer  # noqa: F401
 from tinysearch.vocabulary import Vocabulary  # noqa: F401
 
@@ -15,11 +15,11 @@ def from_documents(
     documents: Iterable[Document],
     batch_size: int = 1000,
     storage: Optional[Storage[Document]] = None,
-    indexer: Optional[Indexer] = None,
-    vectorizer: Optional[Vectorizer] = None,
+    indexer: Optional[Indexer[Matrix]] = None,
+    vectorizer: Optional[Vectorizer[Matrix]] = None,
     analyzer: Optional[Callable[[str], Sequence[str]]] = None,
     stopwords: Optional[Sequence[str]] = None,
-) -> TinySearch[Document]:
+) -> TinySearch[Document, Matrix]:
     return TinySearch.from_documents(
         documents,
         batch_size=batch_size,

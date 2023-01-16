@@ -7,7 +7,7 @@ from tinysearch.vectorizers.vectorizer import Vectorizer
 from tinysearch.vocabulary import Vocabulary
 
 
-class CountVectorizer(Vectorizer):
+class CountVectorizer(Vectorizer[sparse.csr_matrix]):
     def __init__(self, vocab: Vocabulary) -> None:
         super().__init__(vocab)
 

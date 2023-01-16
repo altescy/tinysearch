@@ -2,29 +2,27 @@ from typing import Generic, Iterable, List, Optional, Sequence, Type, TypeVar
 
 from tinysearch.indexers import Indexer
 from tinysearch.storages import Storage
-from tinysearch.typing import Analyzer, Document
+from tinysearch.typing import Analyzer, Document, Matrix
 from tinysearch.vectorizers import Vectorizer
 from tinysearch.vocabulary import Vocabulary
-
-DEFAULT_NAMESPACE = "__default__"
 
 Self = TypeVar("Self", bound="TinySearch")
 
 
-class TinySearch(Generic[Document]):
+class TinySearch(Generic[Document, Matrix]):
     def __init__(
         self,
         storage: Storage[Document],
         vocab: Vocabulary,
-        indexer: Indexer,
-        vectorizer: Vectorizer,
+        indexer: Indexer[Matrix],
+        vectorizer: Vectorizer[Matrix],
         analyzer: Analyzer,
         stopwords: Optional[Sequence[str]] = None,
     ) -> None:
-        self.storage = storage
-        self.vocab = vocab
-        self.indexer = indexer
-        self.vectorizer = vectorizer
+        self.storage: Storage[Document] = storage
+        self.vocab: Vocabulary = vocab
+        self.indexer: Indexer[Matrix] = indexer
+        self.vectorizer: Vectorizer[Matrix] = vectorizer
         self.analyzer = analyzer
         self.stopwords = set(stopwords or ())
 
@@ -42,8 +40,8 @@ class TinySearch(Generic[Document]):
         documents: Iterable[Document],
         batch_size: int = 1000,
         storage: Optional[Storage[Document]] = None,
-        indexer: Optional[Indexer] = None,
-        vectorizer: Optional[Vectorizer] = None,
+        indexer: Optional[Indexer[Matrix]] = None,
+        vectorizer: Optional[Vectorizer[Matrix]] = None,
         analyzer: Optional[Analyzer] = None,
         stopwords: Optional[Sequence[str]] = None,
     ) -> Self:
