@@ -1,7 +1,7 @@
 import abc
 import pickle
 from os import PathLike
-from typing import Generic, List, Optional, Sequence, Type, TypeVar, Union
+from typing import Generic, List, Optional, Sequence, Tuple, Type, TypeVar, Union
 
 from tinysearch.typing import Matrix
 
@@ -14,7 +14,7 @@ class Indexer(abc.ABC, Generic[Matrix]):
         raise NotImplementedError
 
     @abc.abstractmethod
-    def search(self, queries: Matrix, topk: Optional[int]) -> List[List[str]]:
+    def search(self, queries: Matrix, topk: Optional[int]) -> List[List[Tuple[str, float]]]:
         raise NotImplementedError
 
     def save(self, filename: Union[str, PathLike]) -> None:

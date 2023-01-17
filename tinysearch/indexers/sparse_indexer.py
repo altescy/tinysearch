@@ -1,4 +1,4 @@
-from typing import Dict, List, Optional, Sequence
+from typing import Dict, List, Optional, Sequence, Tuple
 
 from scipy import sparse
 
@@ -23,14 +23,14 @@ class SparseIndexer(Indexer[sparse.csr_matrix]):
             self._index_to_id[index] = id_
         self._data = sparse.vstack([self._data, data])
 
-    def search(self, queries: sparse.csr_matrix, topk: Optional[int]) -> List[List[str]]:
+    def search(self, queries: sparse.csr_matrix, topk: Optional[int]) -> List[List[Tuple[str, float]]]:
         scores = queries @ self._data.T
         scores.data[scores.data <= self._threshold] = 0.0
         scores.eliminate_zeros()
-        results: List[List[str]] = []
+        results: List[List[Tuple[str, float]]] = []
         for row in scores:
             indices = sorted(row.indices.tolist(), key=lambda index: float(row[0, index]), reverse=True)
             if topk is not None:
                 indices = indices[:topk]
-            results.append([self._index_to_id[index] for index in indices])
+            results.append([(self._index_to_id[index], float(row[0, index])) for index in indices])
         return results
