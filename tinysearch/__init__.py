@@ -16,7 +16,7 @@ def bm25(
     stopwords: Optional[Sequence[str]] = None,
 ) -> TinySearch[Document, SparseMatrix]:
     from tinysearch import util
-    from tinysearch.indexers import ScipyIndexer
+    from tinysearch.indexers import SparseIndexer
     from tinysearch.storages import MemoryStorage
     from tinysearch.vectorizers import BM25Vectorizer
     from tinysearch.vocabulary import Vocabulary
@@ -29,7 +29,7 @@ def bm25(
     analyzed_documents = {doc["id"]: analyzer(doc["text"]) for doc in documents}
 
     vocab = Vocabulary.from_documents(analyzed_documents.values())
-    indexer = ScipyIndexer(len(vocab))
+    indexer = SparseIndexer(len(vocab))
     vectorizer = BM25Vectorizer(vocab)
 
     for batch in util.batched(analyzed_documents.items(), batch_size):
