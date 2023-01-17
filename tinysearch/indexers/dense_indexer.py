@@ -22,7 +22,10 @@ class DenseIndexer(Indexer[DenseMatrix]):
             index = len(self._id_to_index)
             self._id_to_index[id_] = index
             self._index_to_id[index] = id_
-        self._data = numpy.vstack([self._data, data])
+        if len(self._data) == 0:
+            self._data = data
+        else:
+            self._data = numpy.vstack([self._data, data])
 
     def search(self, queries: DenseMatrix, topk: Optional[int]) -> List[List[Tuple[str, float]]]:
         scores = queries @ self._data.T
@@ -30,7 +33,7 @@ class DenseIndexer(Indexer[DenseMatrix]):
         results: List[List[Tuple[str, float]]] = []
         for row in range(len(queries)):
             results.append([])
-            for col in range(topk or len(self._data)):
+            for col in range(min(topk or len(self._data), len(self._data))):
                 if scores[row, col] <= self._threshold:
                     break
                 id_ = self._index_to_id[indices[row, col]]
