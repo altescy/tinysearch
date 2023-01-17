@@ -13,9 +13,11 @@ class SifVectorizer(Vectorizer[DenseMatrix]):
         vocab: Vocabulary,
         embeddings: Mapping[str, DenseMatrix],
         smoothing: float = 1e-3,
+        normalize: bool = True,
     ) -> None:
         super().__init__(vocab)
         self.smoothing = smoothing
+        self.normalize = normalize
         self.embeddings = embeddings
         self.embedding_dim = len(next(iter(embeddings.values())))
 
@@ -28,7 +30,10 @@ class SifVectorizer(Vectorizer[DenseMatrix]):
             token_probability = self.vocab.get_token_probability(token)
             vector += self.smoothing / (self.smoothing + token_probability) * self.embeddings[token]
             num_tokens += 1
-        return vector / num_tokens
+        vector = vector / num_tokens
+        if self.normalize:
+            vector = vector / numpy.linalg.norm(vector)
+        return vector
 
     def vectorize_queries(self, queies: Sequence[Sequence[str]]) -> DenseMatrix:
         return numpy.vstack([self._get_sif_vector(query) for query in queies])
