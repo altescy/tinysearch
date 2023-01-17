@@ -12,7 +12,7 @@ documents = [
     {"id": "2", "text": "it is quite windy in yokohama"},
 ]
 
-searcher = tinysearch.from_documents(documents)
+searcher = tinysearch.bm25(documents)
 results = searcher.search("weather windy yokohama")
 print(results)
 # [{'id': '2', 'text': 'it is quite windy in yokohama'},
