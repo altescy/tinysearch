@@ -1,4 +1,4 @@
-from typing import Generic, Mapping, Sequence
+from typing import Mapping, Sequence
 
 import numpy
 
