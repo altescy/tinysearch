@@ -1,4 +1,3 @@
-import itertools
 from typing import Dict, List, Optional, Sequence, Tuple
 
 import numpy
