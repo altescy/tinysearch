@@ -42,10 +42,9 @@ class BM25Vectorizer(Vectorizer[sparse.csr_matrix]):
         col: List[int] = []
         data: List[float] = []
         for document_index, tokens in enumerate(documents):
+            tokens = [token for token in tokens if token in self.vocab]
             counter = Counter(tokens)
             for token, count in counter.items():
-                if token not in self.vocab:
-                    continue
                 D = len(tokens)
                 avgl = self.vocab.average_document_length
                 value = count * (k1 + 1) / (count + k1 * (1 - b + b * D / avgl))
