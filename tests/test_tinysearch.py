@@ -12,7 +12,7 @@ def test_tinysearch() -> None:
         {"id": "2", "text": "it is quite windy in yokohama"},
     ]
 
-    searcher = tinysearch.from_documents(documents)
+    searcher = tinysearch.bm25(documents)
     results = searcher.search("weather windy yokohama")
     assert len(results) == 2
     assert results[0]["id"] == "2"

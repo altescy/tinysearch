@@ -1,29 +1,45 @@
 from importlib.metadata import version
 from typing import Callable, Iterable, Optional, Sequence
 
-from tinysearch.indexers import Indexer, ScipyIndexer  # noqa: F401
-from tinysearch.storages import MemoryStorage, Storage  # noqa: F401
+from tinysearch.storages import Storage
 from tinysearch.tinysearch import TinySearch
-from tinysearch.typing import Document, Matrix
-from tinysearch.vectorizers import CountVectorizer, Vectorizer  # noqa: F401
-from tinysearch.vocabulary import Vocabulary  # noqa: F401
+from tinysearch.typing import Document, SparseMatrix
 
 __version__ = version("tinysearch")
 
 
-def from_documents(
+def bm25(
     documents: Iterable[Document],
     batch_size: int = 1000,
     storage: Optional[Storage[Document]] = None,
-    indexer: Optional[Indexer[Matrix]] = None,
-    vectorizer: Optional[Vectorizer[Matrix]] = None,
     analyzer: Optional[Callable[[str], Sequence[str]]] = None,
     stopwords: Optional[Sequence[str]] = None,
-) -> TinySearch[Document, Matrix]:
-    return TinySearch.from_documents(
-        documents,
-        batch_size=batch_size,
+) -> TinySearch[Document, SparseMatrix]:
+    from tinysearch import util
+    from tinysearch.indexers import ScipyIndexer
+    from tinysearch.storages import MemoryStorage
+    from tinysearch.vectorizers import BM25Vectorizer
+    from tinysearch.vocabulary import Vocabulary
+
+    storage = storage or MemoryStorage()
+    for document in documents:
+        storage[document["id"]] = document
+
+    analyzer = analyzer or (lambda text: text.split())
+    analyzed_documents = {doc["id"]: analyzer(doc["text"]) for doc in documents}
+
+    vocab = Vocabulary.from_documents(analyzed_documents.values())
+    indexer = ScipyIndexer(len(vocab))
+    vectorizer = BM25Vectorizer(vocab)
+
+    for batch in util.batched(analyzed_documents.items(), batch_size):
+        ids, docs = zip(*batch)
+        vectors = vectorizer.vectorize_documents(docs)
+        indexer.insert(ids, vectors)
+
+    return TinySearch(
         storage=storage,
+        vocab=vocab,
         indexer=indexer,
         vectorizer=vectorizer,
         analyzer=analyzer,
