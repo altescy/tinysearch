@@ -4,7 +4,6 @@ from tinysearch.indexers import Indexer
 from tinysearch.storages import Storage
 from tinysearch.typing import Analyzer, Document, Matrix
 from tinysearch.vectorizers import Vectorizer
-from tinysearch.vocabulary import Vocabulary
 
 Self = TypeVar("Self", bound="TinySearch")
 
@@ -13,14 +12,12 @@ class TinySearch(Generic[Document, Matrix]):
     def __init__(
         self,
         storage: Storage[Document],
-        vocab: Vocabulary,
         indexer: Indexer[Matrix],
         vectorizer: Vectorizer[Matrix],
         analyzer: Analyzer,
         stopwords: Optional[Sequence[str]] = None,
     ) -> None:
         self.storage: Storage[Document] = storage
-        self.vocab: Vocabulary = vocab
         self.indexer: Indexer[Matrix] = indexer
         self.vectorizer: Vectorizer[Matrix] = vectorizer
         self.analyzer = analyzer

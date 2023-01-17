@@ -39,7 +39,6 @@ def bm25(
 
     return TinySearch(
         storage=storage,
-        vocab=vocab,
         indexer=indexer,
         vectorizer=vectorizer,
         analyzer=analyzer,
