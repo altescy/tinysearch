@@ -3,10 +3,11 @@ from typing import Dict, List, Optional, Sequence, Tuple
 from scipy import sparse
 
 from tinysearch.indexers.indexer import Indexer
+from tinysearch.util import csr_row_normalize
 
 
 class SparseIndexer(Indexer[sparse.csr_matrix]):
-    AVAILABLE_SPACES = {"dotprod"}
+    AVAILABLE_SPACES = {"dotprod", "cosine"}
 
     def __init__(self, space: str, threshold: float = 0.0) -> None:
         if space not in self.AVAILABLE_SPACES:
@@ -20,6 +21,10 @@ class SparseIndexer(Indexer[sparse.csr_matrix]):
 
     def _compute_similarity(self, source: sparse.csr_matrix, target: sparse.csr_matrix) -> sparse.csr_matrix:
         if self._space == "dotprod":
+            return source @ target.T
+        if self._space == "cosine":
+            source = csr_row_normalize(source)
+            target = csr_row_normalize(target)
             return source @ target.T
         raise ValueError(f"Unknown space {self._space}.")
 
