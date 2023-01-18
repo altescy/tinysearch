@@ -1,6 +1,7 @@
+import math
 from importlib.metadata import version
 from os import PathLike
-from typing import Callable, Iterable, Mapping, Optional, Sequence, Union
+from typing import Callable, Iterable, Mapping, Optional, Sequence, Tuple, Union, cast
 
 from tinysearch import util
 from tinysearch.storages import Storage
@@ -26,14 +27,25 @@ def bm25(
     from tinysearch.vectorizers import BM25Vectorizer
     from tinysearch.vocabulary import Vocabulary
 
+    vocab = Vocabulary()
     storage = storage or MemoryStorage()
-    for document in documents:
-        storage[document[id_field]] = document
-
     analyzer = analyzer or (lambda text: text.split())
-    analyzed_documents = {doc[id_field]: analyzer(doc[text_field]) for doc in documents}
+    for document in util.progressbar(documents, desc="Loading documents"):
+        docid = document[id_field]
+        docid_analyzed = f"{docid}__analyzed"
+        storage[docid] = document[text_field]
+        if docid_analyzed not in storage:
+            storage[docid_analyzed] = cast(Document, {"id": docid, "tokens": analyzer(document[text_field])})
 
-    vocab = Vocabulary.from_documents(analyzed_documents.values())
+        storage[docid] = document
+        vocab.add_document(storage[docid_analyzed]["tokens"])
+
+    def iter_analyzed_texts() -> Iterable[Tuple[str, Sequence[str]]]:
+        assert storage is not None
+        for docid, doc in storage.items():
+            if docid.endswith("__analyzed"):
+                docid = docid[:-10]
+                yield docid, doc["tokens"]
 
     indexer: Union[SparseIndexer, AnnSparseIndexer]
     if approximate_search:
@@ -43,7 +55,12 @@ def bm25(
 
     vectorizer = BM25Vectorizer(vocab)
 
-    for batch in util.batched(analyzed_documents.items(), batch_size):
+    num_batches = math.ceil(len(storage) / batch_size)
+    for batch in util.progressbar(
+        util.batched(iter_analyzed_texts(), batch_size),
+        total=num_batches,
+        desc="Indexing documents",
+    ):
         ids, docs = zip(*batch)
         vectors = vectorizer.vectorize_documents(docs)
         indexer.insert(ids, vectors)
@@ -87,15 +104,29 @@ def sif(
             embeddings
         )
 
+    vocab = Vocabulary() if probabilities is None else None
     storage = storage or MemoryStorage()
-    for document in documents:
-        storage[document[id_field]] = document
-
     analyzer = analyzer or (lambda text: text.split())
-    analyzed_documents = {doc[id_field]: analyzer(doc[text_field]) for doc in documents}
+    for document in util.progressbar(documents, desc="Loading documents"):
+        docid = document[id_field]
+        docid_analyzed = f"{docid}__analyzed"
+        storage[docid] = document[text_field]
+        if docid_analyzed not in storage:
+            storage[docid_analyzed] = cast(Document, {"id": docid, "tokens": analyzer(document[text_field])})
+
+        storage[docid] = document
+        if vocab is not None:
+            vocab.add_document(storage[docid_analyzed]["tokens"])
+
+    def iter_analyzed_texts() -> Iterable[Tuple[str, Sequence[str]]]:
+        assert storage is not None
+        for docid, doc in storage.items():
+            if docid.endswith("__analyzed"):
+                docid = docid[:-10]
+                yield docid, doc["tokens"]
 
     if probabilities is None:
-        vocab = Vocabulary.from_documents(analyzed_documents.values())
+        assert vocab is not None
         probabilities = {token: vocab.get_token_probability(token) for token in vocab.token_to_index}
 
     indexer: Union[DenseIndexer, AnnDenseIndexer]
@@ -106,7 +137,12 @@ def sif(
 
     vectorizer = SifVectorizer(probabilities, embeddings, smoothing=smoothing)
 
-    for batch in util.batched(analyzed_documents.items(), batch_size):
+    num_batches = math.ceil(len(storage) / batch_size)
+    for batch in util.progressbar(
+        util.batched(iter_analyzed_texts(), batch_size),
+        total=num_batches,
+        desc="Indexing documents",
+    ):
         ids, docs = zip(*batch)
         vectors = vectorizer.vectorize_documents(docs)
         indexer.insert(ids, vectors)
@@ -150,11 +186,22 @@ def swem(
         )
 
     storage = storage or MemoryStorage()
-    for document in documents:
-        storage[document[id_field]] = document
-
     analyzer = analyzer or (lambda text: text.split())
-    analyzed_documents = {doc[id_field]: analyzer(doc[text_field]) for doc in documents}
+    for document in util.progressbar(documents, desc="Loading documents"):
+        docid = document[id_field]
+        docid_analyzed = f"{docid}__analyzed"
+        storage[docid] = document[text_field]
+        if docid_analyzed not in storage:
+            storage[docid_analyzed] = cast(Document, {"id": docid, "tokens": analyzer(document[text_field])})
+
+        storage[docid] = document
+
+    def iter_analyzed_texts() -> Iterable[Tuple[str, Sequence[str]]]:
+        assert storage is not None
+        for docid, doc in storage.items():
+            if docid.endswith("__analyzed"):
+                docid = docid[:-10]
+                yield docid, doc["tokens"]
 
     indexer: Union[DenseIndexer, AnnDenseIndexer]
     if approximate_search:
@@ -164,7 +211,12 @@ def swem(
 
     vectorizer = SwemVectorizer(embeddings, window_size=window_size, smoothing=smoothing)
 
-    for batch in util.batched(analyzed_documents.items(), batch_size):
+    num_batches = math.ceil(len(storage) / batch_size)
+    for batch in util.progressbar(
+        util.batched(iter_analyzed_texts(), batch_size),
+        total=num_batches,
+        desc="Indexing documents",
+    ):
         ids, docs = zip(*batch)
         vectors = vectorizer.vectorize_documents(docs)
         indexer.insert(ids, vectors)
