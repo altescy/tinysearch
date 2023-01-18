@@ -18,11 +18,8 @@ class NDCG(Metrics):
         self._total_count = 0
 
     def __call__(self, gold: Sequence[Tuple[str, int]], pred: Sequence[Tuple[str, int]]) -> None:
-        pred_relevance = numpy.sort([r for _, r in pred])[::-1]
-        gold_relevance = numpy.sort([r for _, r in gold])[::-1]
-
-        pred_relevance = pred_relevance[: self._topk]
-        gold_relevance = gold_relevance[: self._topk]
+        gold_relevance = numpy.sort([r for _, r in gold])[::-1][: self._topk]
+        pred_relevance = numpy.array([r for _, r in pred])[::-1][: self._topk]
 
         dcg = numpy.sum(pred_relevance / numpy.log2(numpy.arange(2, pred_relevance.size + 2)))
         idcg = numpy.sum(gold_relevance / numpy.log2(numpy.arange(2, gold_relevance.size + 2)))
@@ -34,13 +31,16 @@ class NDCG(Metrics):
 
 
 class FMeasure(Metrics):
-    def __init__(self, beta: float = 1.0) -> None:
+    def __init__(self, topk: int, beta: float = 1.0) -> None:
+        self._topk = topk
         self._beta = beta
         self._true_positives = 0
         self._false_positives = 0
         self._false_negatives = 0
 
     def __call__(self, gold: Sequence[Tuple[str, int]], pred: Sequence[Tuple[str, int]]) -> None:
+        gold = sorted(gold, key=lambda x: x[1], reverse=True)[: self._topk]
+        pred = pred[: self._topk]
         gold_ids = set([doc_id for doc_id, _ in gold])
         pred_ids = set([doc_id for doc_id, _ in pred])
         self._true_positives += len(gold_ids & pred_ids)

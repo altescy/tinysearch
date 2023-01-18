@@ -7,17 +7,10 @@ from typing import Any, Dict, Iterator, List, Sequence, Set, Tuple, Union, cast
 
 import ir_datasets
 import numpy
+from analyzer import SimpleAnalyzer
 from metrics import NDCG, FMeasure, MultiMetrics
 
 import tinysearch
-
-
-class SimpleAnalyzer:
-    def __call__(self, text: str) -> List[str]:
-        text = text.lower()
-        for punct in string.punctuation:
-            text = text.replace(punct, " ")
-        return text.split()
 
 
 class DatasetReader:
@@ -60,7 +53,7 @@ def main() -> None:
         approximate_search=True,
     )
 
-    metrics = MultiMetrics(NDCG(args.topk), FMeasure())
+    metrics = MultiMetrics(NDCG(args.topk), FMeasure(args.topk))
     relations = dataset_reader.load_relations()
     golds = dataset_reader.load_golds()
     for i, query in enumerate(dataset_reader.load_query()):
