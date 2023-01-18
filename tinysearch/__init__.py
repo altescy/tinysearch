@@ -12,6 +12,9 @@ __version__ = version("tinysearch")
 
 def bm25(
     documents: Iterable[Document],
+    *,
+    id_field: str = "id",
+    text_field: str = "text",
     batch_size: int = 1000,
     approximate_search: bool = False,
     storage: Optional[Storage[Document]] = None,
@@ -25,10 +28,10 @@ def bm25(
 
     storage = storage or MemoryStorage()
     for document in documents:
-        storage[document["id"]] = document
+        storage[document[id_field]] = document
 
     analyzer = analyzer or (lambda text: text.split())
-    analyzed_documents = {doc["id"]: analyzer(doc["text"]) for doc in documents}
+    analyzed_documents = {doc[id_field]: analyzer(doc[text_field]) for doc in documents}
 
     vocab = Vocabulary.from_documents(analyzed_documents.values())
 
@@ -61,6 +64,9 @@ def bm25(
 def sif(
     documents: Iterable[Document],
     embeddings: Union[str, PathLike, Mapping[str, DenseMatrix]],
+    *,
+    id_field: str = "id",
+    text_field: str = "text",
     probabilities: Optional[Mapping[str, float]] = None,
     similarity: str = "cosine",
     smoothing: float = 1e-3,
@@ -83,10 +89,10 @@ def sif(
 
     storage = storage or MemoryStorage()
     for document in documents:
-        storage[document["id"]] = document
+        storage[document[id_field]] = document
 
     analyzer = analyzer or (lambda text: text.split())
-    analyzed_documents = {doc["id"]: analyzer(doc["text"]) for doc in documents}
+    analyzed_documents = {doc[id_field]: analyzer(doc[text_field]) for doc in documents}
 
     if probabilities is None:
         vocab = Vocabulary.from_documents(analyzed_documents.values())
@@ -121,6 +127,9 @@ def sif(
 def swem(
     documents: Iterable[Document],
     embeddings: Union[str, PathLike, Mapping[str, DenseMatrix]],
+    *,
+    id_field: str = "id",
+    text_field: str = "text",
     similarity: str = "cosine",
     window_size: int = 3,
     smoothing: float = 1e-3,
@@ -142,10 +151,10 @@ def swem(
 
     storage = storage or MemoryStorage()
     for document in documents:
-        storage[document["id"]] = document
+        storage[document[id_field]] = document
 
     analyzer = analyzer or (lambda text: text.split())
-    analyzed_documents = {doc["id"]: analyzer(doc["text"]) for doc in documents}
+    analyzed_documents = {doc[id_field]: analyzer(doc[text_field]) for doc in documents}
 
     indexer: Union[DenseIndexer, AnnDenseIndexer]
     if approximate_search:
