@@ -32,8 +32,8 @@ class AnnDenseIndexer(Indexer[DenseMatrix]):
             raise ValueError("topk must be specified for ann indexers.")
 
         knn_results = self._index.knnQueryBatch(queries, k=topk)
-        results: List[List[Tuple[str, float]]] = []
-        for ids, scores in knn_results:
-            results.append([(self._index_to_id[id_], float(score)) for id_, score in zip(ids, scores)])
+        results = [
+            [(self._index_to_id[id_], float(score)) for id_, score in zip(ids, scores)] for ids, scores in knn_results
+        ]
 
         return results
