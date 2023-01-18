@@ -1,16 +1,16 @@
 import dataclasses
 from collections import Counter
-from typing import Dict, Iterable, MutableMapping, Sequence, Type, TypeVar
+from typing import Dict, Iterable, Sequence, Type, TypeVar
 
 Self = TypeVar("Self", bound="Vocabulary")
 
 
 @dataclasses.dataclass(frozen=True)
 class Vocabulary:
-    token_to_index: MutableMapping[str, int]
-    index_to_token: MutableMapping[int, str]
-    token_frequency: MutableMapping[str, int]
-    document_frequency: MutableMapping[str, int]
+    token_to_index: Dict[str, int]
+    index_to_token: Dict[int, str]
+    token_frequency: Dict[str, int]
+    document_frequency: Dict[str, int]
     number_of_tokens: int
     number_of_documents: int
     average_document_length: float
@@ -33,7 +33,7 @@ class Vocabulary:
     def get_index_by_token(self, token: str) -> int:
         return self.token_to_index[token]
 
-    def get_token_probability(self, token: str, smoothing: float = 0.0) -> float:
+    def get_token_probability(self, token: str, smoothing: float = 1.0) -> float:
         return (self.token_frequency[token] + smoothing) / (self.number_of_tokens + smoothing * len(self))
 
     @classmethod

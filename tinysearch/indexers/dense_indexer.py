@@ -7,9 +7,9 @@ from tinysearch.typing import DenseMatrix
 
 
 class DenseIndexer(Indexer[DenseMatrix]):
-    def __init__(self, dim: int, threshold: float = 0.0) -> None:
+    def __init__(self, threshold: float = 0.0) -> None:
         self._threshold = threshold
-        self._data = numpy.zeros((0, dim))
+        self._data = numpy.zeros((0, 0))
         self._id_to_index: Dict[str, int] = {}
         self._index_to_id: Dict[int, str] = {}
 

@@ -1,6 +1,12 @@
+import functools
+import itertools
+import sys
+import threading
+import time
 from collections import defaultdict
+from concurrent.futures import ThreadPoolExecutor
 from os import PathLike
-from typing import Dict, Iterable, Iterator, List, TypeVar, Union
+from typing import Any, Callable, Dict, Iterable, Iterator, List, Optional, Sized, TextIO, TypeVar, Union
 
 import numpy
 
@@ -20,7 +26,76 @@ def batched(iterable: Iterable[T], batch_size: int) -> Iterator[List[T]]:
         yield batch
 
 
-def load_pretrained_embedding(filename: Union[str, PathLike]) -> Dict[str, numpy.ndarray]:
+def progressbar(
+    iterable: Iterable[T],
+    total: Optional[int] = None,
+    desc: Optional[str] = None,
+    barlength: int = 20,
+) -> Iterator[T]:
+    if isinstance(iterable, Sized):
+        total = total or len(iterable)
+
+    def get_line(i: int) -> str:
+        if total is not None:
+            percentage = i / total
+            bar = f"{'=' * int(percentage * barlength):{barlength}}"
+            total_length = len(str(total))
+            line = f"[{bar}] {i:>{total_length}}/{total}"
+        else:
+            line = f"{i}"
+        if desc:
+            line = f"{desc}: {line}"
+        return line
+
+    for i, item in enumerate(iterable):
+        print("\r" + get_line(i), end="")
+        yield item
+
+    print("\r" + get_line(i + 1))
+
+
+def spinner(
+    desc: Optional[str] = None,
+    *,
+    chars: Iterable[str] = "⠋⠙⠹⠸⠼⠴⠦⠧⠇⠏",
+    delay: float = 0.1,
+    file: TextIO = sys.stdout,
+) -> Callable[[Callable[..., T]], Callable[..., T]]:
+    if not isinstance(chars, itertools.cycle):
+        chars = itertools.cycle(chars)
+
+    def decorator(func: Callable[..., T]) -> Callable[..., T]:
+        @functools.wraps(func)
+        def wrapper(*args: Any, **kwargs: Any) -> T:
+            def show_spinner(event: threading.Event) -> None:
+                assert isinstance(chars, itertools.cycle)
+                start = time.time()
+                while not event.is_set():
+                    elapsed = time.time() - start
+                    message = f"\r{next(chars)} {msg} ... {elapsed:.2f}s"
+                    print(message, end="", file=file, flush=True)
+                    time.sleep(delay)
+
+            event = threading.Event()
+            msg = f"executing {func.__name__}" if desc is None else desc
+            with ThreadPoolExecutor(max_workers=1) as executor:
+                future = executor.submit(show_spinner, event)
+                try:
+                    result = func(*args, **kwargs)
+                finally:
+                    event.set()
+                    while not future.done():
+                        pass
+                    print(file=file, flush=True)
+
+            return result
+
+        return wrapper
+
+    return decorator
+
+
+def load_pretrained_embeddings(filename: Union[str, PathLike]) -> Dict[str, numpy.ndarray]:
     embeddings: Dict[str, numpy.ndarray] = {}
     with open(filename, "r") as textfile:
         for line in textfile:

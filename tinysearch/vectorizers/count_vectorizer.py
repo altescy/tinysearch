@@ -9,7 +9,7 @@ from tinysearch.vocabulary import Vocabulary
 
 class CountVectorizer(Vectorizer[sparse.csr_matrix]):
     def __init__(self, vocab: Vocabulary) -> None:
-        super().__init__(vocab)
+        self.vocab = vocab
 
     def _get_count_vectors(self, documents: Sequence[Sequence[str]]) -> sparse.csr_matrix:
         row: List[int] = []
