@@ -36,10 +36,16 @@ def bm25(
     from tinysearch.vectorizers import BM25Vectorizer
     from tinysearch.vocabulary import Vocabulary
 
+    if isinstance(documents, Storage):
+        storage = documents
+    elif storage is None:
+        storage = MemoryStorage()
+
     vocab = Vocabulary()
-    storage = documents if isinstance(documents, Storage) else storage or MemoryStorage()
     analyzer = analyzer or WhitespaceTokenizer()
+    num_documents = 0
     for document in util.progressbar(documents, desc="Loading documents"):
+        num_documents += 1
         docid = document[id_field]
         docid_analyzed = f"{docid}__analyzed"
         if docid not in storage:
@@ -63,7 +69,7 @@ def bm25(
 
     vectorizer = BM25Vectorizer(vocab)
 
-    num_batches = math.ceil(len(storage) / batch_size)
+    num_batches = math.ceil(num_documents / batch_size)
     for batch in util.progressbar(
         util.batched(iter_analyzed_texts(), batch_size),
         total=num_batches,
@@ -104,10 +110,16 @@ def tfidf(
     from tinysearch.vectorizers import TfidfVectorizer
     from tinysearch.vocabulary import Vocabulary
 
+    if isinstance(documents, Storage):
+        storage = documents
+    elif storage is None:
+        storage = MemoryStorage()
+
     vocab = Vocabulary()
-    storage = documents if isinstance(documents, Storage) else storage or MemoryStorage()
     analyzer = analyzer or WhitespaceTokenizer()
+    num_documents = 0
     for document in util.progressbar(documents, desc="Loading documents"):
+        num_documents += 1
         docid = document[id_field]
         docid_analyzed = f"{docid}__analyzed"
         if docid not in storage:
@@ -131,7 +143,7 @@ def tfidf(
 
     vectorizer = TfidfVectorizer(vocab)
 
-    num_batches = math.ceil(len(storage) / batch_size)
+    num_batches = math.ceil(num_documents / batch_size)
     for batch in util.progressbar(
         util.batched(iter_analyzed_texts(), batch_size),
         total=num_batches,
@@ -176,15 +188,21 @@ def sif(
     from tinysearch.vectorizers import SifVectorizer
     from tinysearch.vocabulary import Vocabulary
 
+    if isinstance(documents, Storage):
+        storage = documents
+    elif storage is None:
+        storage = MemoryStorage()
+
     if isinstance(embeddings, (str, PathLike)):
         embeddings = util.spinner(desc=f"Loading embeddings from {embeddings}")(util.load_pretrained_embeddings)(
             embeddings
         )
 
     vocab = Vocabulary() if probabilities is None else None
-    storage = documents if isinstance(documents, Storage) else storage or MemoryStorage()
     analyzer = analyzer or WhitespaceTokenizer()
+    num_documents = 0
     for document in util.progressbar(documents, desc="Loading documents"):
+        num_documents += 1
         docid = document[id_field]
         docid_analyzed = f"{docid}__analyzed"
         if docid not in storage:
@@ -213,7 +231,7 @@ def sif(
 
     vectorizer = SifVectorizer(probabilities, embeddings, smoothing=smoothing)
 
-    num_batches = math.ceil(len(storage) / batch_size)
+    num_batches = math.ceil(num_documents / batch_size)
     for batch in util.progressbar(
         util.batched(iter_analyzed_texts(), batch_size),
         total=num_batches,
@@ -261,9 +279,15 @@ def swem(
             embeddings
         )
 
-    storage = documents if isinstance(documents, Storage) else storage or MemoryStorage()
+    if isinstance(documents, Storage):
+        storage = documents
+    elif storage is None:
+        storage = MemoryStorage()
+
     analyzer = analyzer or (lambda text: text.split())
+    num_documents = 0
     for document in util.progressbar(documents, desc="Loading documents"):
+        num_documents += 1
         docid = document[id_field]
         docid_analyzed = f"{docid}__analyzed"
         if docid not in storage:
@@ -286,7 +310,7 @@ def swem(
 
     vectorizer = SwemVectorizer(embeddings, window_size=window_size, smoothing=smoothing)
 
-    num_batches = math.ceil(len(storage) / batch_size)
+    num_batches = math.ceil(num_documents / batch_size)
     for batch in util.progressbar(
         util.batched(iter_analyzed_texts(), batch_size),
         total=num_batches,

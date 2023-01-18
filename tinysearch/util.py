@@ -33,8 +33,14 @@ def progressbar(
     desc: Optional[str] = None,
     barlength: int = 20,
 ) -> Iterator[T]:
+    if total is not None and total < 0:
+        raise ValueError("Total must be positive.")
+
     if isinstance(iterable, Sized):
         total = total or len(iterable)
+
+    if total == 0:
+        return iter([])
 
     def get_line(i: int) -> str:
         if total is not None:
@@ -48,6 +54,7 @@ def progressbar(
             line = f"{desc}: {line}"
         return line
 
+    i = 0
     for i, item in enumerate(iterable):
         print("\r" + get_line(i), end="")
         yield item

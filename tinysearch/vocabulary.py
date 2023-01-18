@@ -15,6 +15,7 @@ class Vocabulary:
         self.document_frequency: Dict[str, int] = {}
         self.number_of_tokens: int = 0
         self.number_of_documents: int = 0
+        self.stopwords = set(stopwords)
 
     def __len__(self) -> int:
         return len(self.token_to_index)
@@ -42,6 +43,7 @@ class Vocabulary:
         return self.number_of_tokens / self.number_of_documents
 
     def add_document(self, document: Sequence[str]) -> None:
+        document = [token for token in document if token not in self.stopwords]
         self.number_of_documents += 1
         counter = Counter(document)
         for token, count in counter.items():
