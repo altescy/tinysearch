@@ -9,6 +9,7 @@ from os import PathLike
 from typing import Any, Callable, Dict, Iterable, Iterator, List, Optional, Sized, TextIO, TypeVar, Union
 
 import numpy
+from scipy import sparse
 
 T = TypeVar("T")
 
@@ -113,3 +114,12 @@ def distance_to_similarity(space: str, distance: float) -> float:
     if space in ("dotprod", "l1", "l2", "linf"):
         return -distance
     raise ValueError(f"Unknown space: {space}")
+
+
+def csr_row_normalize(matrix: sparse.csr_matrix) -> sparse.csr_matrix:
+    matrix = matrix.copy()
+    norms = numpy.array(sparse.linalg.norm(matrix, axis=1)).flatten()
+    scale = numpy.reciprocal(norms, where=norms != 0)
+    matrix.data *= numpy.repeat(scale, numpy.diff(matrix.indptr))
+    matrix.eliminate_zeros()
+    return matrix

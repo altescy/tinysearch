@@ -19,6 +19,20 @@ def test_bm25() -> None:
     assert results[1]["id"] == "1"
 
 
+def test_tfidf() -> None:
+    documents = [
+        {"id": "0", "text": "hello there good man !"},
+        {"id": "1", "text": "how is the weather today ?"},
+        {"id": "2", "text": "it is quite windy in yokohama"},
+    ]
+
+    searcher = tinysearch.tfidf(documents)
+    results = searcher.search("weather windy yokohama")
+    assert len(results) == 2
+    assert results[0]["id"] == "2"
+    assert results[1]["id"] == "1"
+
+
 def test_sif() -> None:
     documents = [
         {"id": "0", "text": "you"},
