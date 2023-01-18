@@ -1,3 +1,5 @@
+from pathlib import Path
+
 import tinysearch
 
 
@@ -63,3 +65,20 @@ def test_swem() -> None:
     assert results[0]["id"] == "2"
     assert results[1]["id"] == "0"
     assert results[2]["id"] == "1"
+
+
+def test_save_and_load(tmp_path: Path) -> None:
+    documents = [
+        {"id": "0", "text": "hello there good man !"},
+        {"id": "1", "text": "how is the weather today ?"},
+        {"id": "2", "text": "it is quite windy in yokohama"},
+    ]
+
+    filename = tmp_path / "searcher.pkl"
+    tinysearch.bm25(documents, approximate_search=True).save(filename)
+    searcher = tinysearch.load(filename)
+
+    results = searcher.search("weather windy yokohama")
+    assert len(results) == 2
+    assert results[0]["id"] == "2"
+    assert results[1]["id"] == "1"
