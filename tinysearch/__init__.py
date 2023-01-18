@@ -53,12 +53,13 @@ def sif(
     probabilities: Optional[Mapping[str, float]] = None,
     smoothing: float = 1e-3,
     batch_size: int = 1000,
+    approximate_search: bool = False,
     storage: Optional[Storage[Document]] = None,
     analyzer: Optional[Callable[[str], Sequence[str]]] = None,
     stopwords: Optional[Sequence[str]] = None,
 ) -> TinySearch[Document, DenseMatrix]:
 
-    from tinysearch.indexers import DenseIndexer
+    from tinysearch.indexers import AnnDenseIndexer, DenseIndexer
     from tinysearch.storages import MemoryStorage
     from tinysearch.vectorizers import SifVectorizer
     from tinysearch.vocabulary import Vocabulary
@@ -79,13 +80,22 @@ def sif(
         vocab = Vocabulary.from_documents(analyzed_documents.values())
         probabilities = {token: vocab.get_token_probability(token) for token in vocab.token_to_index}
 
-    indexer = DenseIndexer(threshold=-1e5)
+    indexer: Union[DenseIndexer, AnnDenseIndexer]
+    if approximate_search:
+        indexer = AnnDenseIndexer()
+    else:
+        indexer = DenseIndexer()
+
     vectorizer = SifVectorizer(probabilities, embeddings, smoothing=smoothing)
 
     for batch in util.batched(analyzed_documents.items(), batch_size):
         ids, docs = zip(*batch)
         vectors = vectorizer.vectorize_documents(docs)
         indexer.insert(ids, vectors)
+
+    if isinstance(indexer, AnnDenseIndexer):
+        print("Building index for ANN indexer...")
+        indexer.build(print_progress=True)
 
     return TinySearch(
         storage=storage,
@@ -102,12 +112,13 @@ def swem(
     window_size: int = 3,
     smoothing: float = 1e-3,
     batch_size: int = 1000,
+    approximate_search: bool = False,
     storage: Optional[Storage[Document]] = None,
     analyzer: Optional[Callable[[str], Sequence[str]]] = None,
     stopwords: Optional[Sequence[str]] = None,
 ) -> TinySearch[Document, DenseMatrix]:
 
-    from tinysearch.indexers import DenseIndexer
+    from tinysearch.indexers import AnnDenseIndexer, DenseIndexer
     from tinysearch.storages import MemoryStorage
     from tinysearch.vectorizers import SwemVectorizer
 
@@ -123,13 +134,22 @@ def swem(
     analyzer = analyzer or (lambda text: text.split())
     analyzed_documents = {doc["id"]: analyzer(doc["text"]) for doc in documents}
 
-    indexer = DenseIndexer()
+    indexer: Union[DenseIndexer, AnnDenseIndexer]
+    if approximate_search:
+        indexer = AnnDenseIndexer()
+    else:
+        indexer = DenseIndexer()
+
     vectorizer = SwemVectorizer(embeddings, window_size=window_size, smoothing=smoothing)
 
     for batch in util.batched(analyzed_documents.items(), batch_size):
         ids, docs = zip(*batch)
         vectors = vectorizer.vectorize_documents(docs)
         indexer.insert(ids, vectors)
+
+    if isinstance(indexer, AnnDenseIndexer):
+        print("Building index for ANN indexer...")
+        indexer.build(print_progress=True)
 
     return TinySearch(
         storage=storage,
