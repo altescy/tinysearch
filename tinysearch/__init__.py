@@ -62,6 +62,7 @@ def sif(
     documents: Iterable[Document],
     embeddings: Union[str, PathLike, Mapping[str, DenseMatrix]],
     probabilities: Optional[Mapping[str, float]] = None,
+    similarity: str = "cosine",
     smoothing: float = 1e-3,
     batch_size: int = 1000,
     approximate_search: bool = False,
@@ -93,9 +94,9 @@ def sif(
 
     indexer: Union[DenseIndexer, AnnDenseIndexer]
     if approximate_search:
-        indexer = AnnDenseIndexer(space="cosine")
+        indexer = AnnDenseIndexer(space=similarity)
     else:
-        indexer = DenseIndexer(space="cosine")
+        indexer = DenseIndexer(space=similarity)
 
     vectorizer = SifVectorizer(probabilities, embeddings, smoothing=smoothing)
 
@@ -120,6 +121,7 @@ def sif(
 def swem(
     documents: Iterable[Document],
     embeddings: Union[str, PathLike, Mapping[str, DenseMatrix]],
+    similarity: str = "cosine",
     window_size: int = 3,
     smoothing: float = 1e-3,
     batch_size: int = 1000,
@@ -147,9 +149,9 @@ def swem(
 
     indexer: Union[DenseIndexer, AnnDenseIndexer]
     if approximate_search:
-        indexer = AnnDenseIndexer(space="cosine")
+        indexer = AnnDenseIndexer(space=similarity)
     else:
-        indexer = DenseIndexer(space="cosine")
+        indexer = DenseIndexer(space=similarity)
 
     vectorizer = SwemVectorizer(embeddings, window_size=window_size, smoothing=smoothing)
 

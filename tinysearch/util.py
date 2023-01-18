@@ -108,10 +108,8 @@ def load_pretrained_embeddings(filename: Union[str, PathLike]) -> Dict[str, nump
 
 
 def distance_to_similarity(space: str, distance: float) -> float:
-    if "cosine" in space:
+    if space == "cosine":
         return 1.0 - distance
-    if "angular" in space:
-        return 1.0 - distance
-    if "dotrod" in space:
+    if space in ("dotprod", "l1", "l2", "linf"):
         return -distance
     raise ValueError(f"Unknown space: {space}")
