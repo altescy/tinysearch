@@ -18,7 +18,7 @@ class Storage(abc.ABC, Generic[T]):
         raise NotImplementedError
 
     @abc.abstractmethod
-    def __iter__(self) -> Iterator[str]:
+    def __iter__(self) -> Iterator[T]:
         raise NotImplementedError
 
     @abc.abstractmethod

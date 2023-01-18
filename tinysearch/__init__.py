@@ -28,16 +28,15 @@ def bm25(
     from tinysearch.vocabulary import Vocabulary
 
     vocab = Vocabulary()
-    storage = storage or MemoryStorage()
+    storage = documents if isinstance(documents, Storage) else storage or MemoryStorage()
     analyzer = analyzer or (lambda text: text.split())
     for document in util.progressbar(documents, desc="Loading documents"):
         docid = document[id_field]
         docid_analyzed = f"{docid}__analyzed"
-        storage[docid] = document[text_field]
+        if docid not in storage:
+            storage[docid] = document
         if docid_analyzed not in storage:
             storage[docid_analyzed] = cast(Document, {"id": docid, "tokens": analyzer(document[text_field])})
-
-        storage[docid] = document
         vocab.add_document(storage[docid_analyzed]["tokens"])
 
     def iter_analyzed_texts() -> Iterable[Tuple[str, Sequence[str]]]:
@@ -105,16 +104,15 @@ def sif(
         )
 
     vocab = Vocabulary() if probabilities is None else None
-    storage = storage or MemoryStorage()
+    storage = documents if isinstance(documents, Storage) else storage or MemoryStorage()
     analyzer = analyzer or (lambda text: text.split())
     for document in util.progressbar(documents, desc="Loading documents"):
         docid = document[id_field]
         docid_analyzed = f"{docid}__analyzed"
-        storage[docid] = document[text_field]
+        if docid not in storage:
+            storage[docid] = document
         if docid_analyzed not in storage:
             storage[docid_analyzed] = cast(Document, {"id": docid, "tokens": analyzer(document[text_field])})
-
-        storage[docid] = document
         if vocab is not None:
             vocab.add_document(storage[docid_analyzed]["tokens"])
 
@@ -185,16 +183,15 @@ def swem(
             embeddings
         )
 
-    storage = storage or MemoryStorage()
+    storage = documents if isinstance(documents, Storage) else storage or MemoryStorage()
     analyzer = analyzer or (lambda text: text.split())
     for document in util.progressbar(documents, desc="Loading documents"):
         docid = document[id_field]
         docid_analyzed = f"{docid}__analyzed"
-        storage[docid] = document[text_field]
+        if docid not in storage:
+            storage[docid] = document
         if docid_analyzed not in storage:
             storage[docid_analyzed] = cast(Document, {"id": docid, "tokens": analyzer(document[text_field])})
-
-        storage[docid] = document
 
     def iter_analyzed_texts() -> Iterable[Tuple[str, Sequence[str]]]:
         assert storage is not None

@@ -18,8 +18,8 @@ class MemoryStorage(Storage[T]):
     def __contains__(self, key: str) -> bool:
         return key in self._storage
 
-    def __iter__(self) -> Iterator[str]:
-        return iter(self._storage.keys())
+    def __iter__(self) -> Iterator[T]:
+        return iter(self._storage.values())
 
     def __len__(self) -> int:
         return len(self._storage)
