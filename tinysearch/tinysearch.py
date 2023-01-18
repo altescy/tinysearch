@@ -1,4 +1,6 @@
-from typing import Generic, List, Literal, Optional, Sequence, Tuple, TypeVar, Union, overload
+import pickle
+from os import PathLike
+from typing import Generic, List, Literal, Optional, Sequence, Tuple, Type, TypeVar, Union, overload
 
 from tinysearch.indexers import Indexer
 from tinysearch.storages import Storage
@@ -67,3 +69,15 @@ class TinySearch(Generic[Document, Matrix]):
         if return_scores:
             return [(self.storage[id_], score) for id_, score in results]
         return [self.storage[id_] for id_, _ in results]
+
+    def save(self, filename: Union[str, PathLike]) -> None:
+        with open(filename, "wb") as pklfile:
+            pickle.dump(self, pklfile)
+
+    @classmethod
+    def load(cls: Type[Self], filename: Union[str, PathLike]) -> Self:
+        with open(filename, "rb") as pklfile:
+            searcher = pickle.load(pklfile)
+            if not isinstance(searcher, cls):
+                raise TypeError(f"Expected type {cls.__name__}, got {type(searcher).__name__}")
+        return searcher

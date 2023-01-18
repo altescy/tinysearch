@@ -1,4 +1,7 @@
 import functools
+import itertools
+import tempfile
+from pathlib import Path
 from typing import Any, Dict, List, Optional, Sequence, Tuple
 
 import numpy
@@ -17,17 +20,24 @@ class AnnSparseIndexer(Indexer[SparseMatrix]):
         "linf": "linf_sparse",
     }
 
-    def __init__(self, space: str) -> None:
+    def __init__(
+        self,
+        space: str,
+        method: str = "hnsw",
+        threshold: float = 0.0,
+    ) -> None:
         import nmslib
 
         if space not in self.NMSLIB_SPACES:
             raise ValueError(f"Unknown space {space}.")
 
-        self._index = nmslib.init(
-            method="hnsw",
+        self._threshold = threshold
+        self._index_args = dict(
+            method=method,
             space=self.NMSLIB_SPACES[space],
             data_type=nmslib.DataType.SPARSE_VECTOR,
         )
+        self._index = nmslib.init(**self._index_args)
         self._distance_to_similarity = functools.partial(distance_to_similarity, space)
         self._id_to_index: Dict[str, int] = {}
         self._index_to_id: Dict[int, str] = {}
@@ -51,8 +61,59 @@ class AnnSparseIndexer(Indexer[SparseMatrix]):
 
         knn_results = self._index.knnQueryBatch(queries, k=topk)
         results = [
-            [(self._index_to_id[id_], self._distance_to_similarity(float(score))) for id_, score in zip(ids, scores)]
+            [
+                (self._index_to_id[id_], score)
+                for id_, score in itertools.takewhile(
+                    lambda x: x[1] > self._threshold,
+                    zip(ids, (self._distance_to_similarity(float(score)) for score in scores)),
+                )
+            ]
             for ids, scores in knn_results
         ]
 
         return results
+
+    def __getstate__(self) -> Dict[str, Any]:
+        with tempfile.TemporaryDirectory() as _workdir:
+            workdir = Path(_workdir)
+            index_filename = workdir / "index.bin"
+            index_data_filename = workdir / "index.bin.dat"
+            self._index.saveIndex(str(index_filename), save_data=True)
+            assert index_data_filename.is_file()
+            with index_filename.open("rb") as binfile:
+                indexder_bytes = binfile.read()
+            with index_data_filename.open("rb") as binfile:
+                index_data_bytes = binfile.read()
+
+        state = {
+            "index": indexder_bytes,
+            "index_data": index_data_bytes,
+            "index_args": self._index_args,
+            "distance_to_similarity": self._distance_to_similarity,
+            "id_to_index": self._id_to_index,
+            "index_to_id": self._index_to_id,
+            "threshold": self._threshold,
+        }
+        return state
+
+    def __setstate__(self, state: Dict[str, Any]) -> None:
+        import nmslib
+
+        self._index_args = state["index_args"]
+        self._distance_to_similarity = state["distance_to_similarity"]
+        self._id_to_index = state["id_to_index"]
+        self._index_to_id = state["index_to_id"]
+        self._threshold = state["threshold"]
+
+        self._index = nmslib.init(**self._index_args)
+
+        with tempfile.TemporaryDirectory() as _workdir:
+            workdir = Path(_workdir)
+            index_filename = workdir / "index.bin"
+            index_data_filename = workdir / "index.bin.dat"
+            with index_filename.open("wb") as binfile:
+                binfile.write(state["index"])
+            with index_data_filename.open("wb") as binfile:
+                binfile.write(state["index_data"])
+
+            self._index.loadIndex(str(index_filename), load_data=True)

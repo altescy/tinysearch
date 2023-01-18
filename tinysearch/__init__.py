@@ -11,6 +11,14 @@ from tinysearch.typing import DenseMatrix, Document, SparseMatrix
 __version__ = version("tinysearch")
 
 
+def save(searcher: TinySearch, path: PathLike) -> None:
+    searcher.save(path)
+
+
+def load(path: PathLike) -> TinySearch:
+    return TinySearch.load(path)
+
+
 def bm25(
     documents: Iterable[Document],
     *,
@@ -22,6 +30,7 @@ def bm25(
     analyzer: Optional[Callable[[str], Sequence[str]]] = None,
     stopwords: Optional[Sequence[str]] = None,
 ) -> TinySearch[Document, SparseMatrix]:
+    from tinysearch.analyzers import WhitespaceTokenizer
     from tinysearch.indexers import AnnSparseIndexer, SparseIndexer
     from tinysearch.storages import MemoryStorage
     from tinysearch.vectorizers import BM25Vectorizer
@@ -29,7 +38,7 @@ def bm25(
 
     vocab = Vocabulary()
     storage = documents if isinstance(documents, Storage) else storage or MemoryStorage()
-    analyzer = analyzer or (lambda text: text.split())
+    analyzer = analyzer or WhitespaceTokenizer()
     for document in util.progressbar(documents, desc="Loading documents"):
         docid = document[id_field]
         docid_analyzed = f"{docid}__analyzed"
@@ -89,6 +98,7 @@ def tfidf(
     analyzer: Optional[Callable[[str], Sequence[str]]] = None,
     stopwords: Optional[Sequence[str]] = None,
 ) -> TinySearch[Document, SparseMatrix]:
+    from tinysearch.analyzers import WhitespaceTokenizer
     from tinysearch.indexers import AnnSparseIndexer, SparseIndexer
     from tinysearch.storages import MemoryStorage
     from tinysearch.vectorizers import TfidfVectorizer
@@ -96,7 +106,7 @@ def tfidf(
 
     vocab = Vocabulary()
     storage = documents if isinstance(documents, Storage) else storage or MemoryStorage()
-    analyzer = analyzer or (lambda text: text.split())
+    analyzer = analyzer or WhitespaceTokenizer()
     for document in util.progressbar(documents, desc="Loading documents"):
         docid = document[id_field]
         docid_analyzed = f"{docid}__analyzed"
@@ -160,6 +170,7 @@ def sif(
     stopwords: Optional[Sequence[str]] = None,
 ) -> TinySearch[Document, DenseMatrix]:
 
+    from tinysearch.analyzers import WhitespaceTokenizer
     from tinysearch.indexers import AnnDenseIndexer, DenseIndexer
     from tinysearch.storages import MemoryStorage
     from tinysearch.vectorizers import SifVectorizer
@@ -172,7 +183,7 @@ def sif(
 
     vocab = Vocabulary() if probabilities is None else None
     storage = documents if isinstance(documents, Storage) else storage or MemoryStorage()
-    analyzer = analyzer or (lambda text: text.split())
+    analyzer = analyzer or WhitespaceTokenizer()
     for document in util.progressbar(documents, desc="Loading documents"):
         docid = document[id_field]
         docid_analyzed = f"{docid}__analyzed"
