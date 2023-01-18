@@ -13,11 +13,12 @@ __version__ = version("tinysearch")
 def bm25(
     documents: Iterable[Document],
     batch_size: int = 1000,
+    approximate_search: bool = False,
     storage: Optional[Storage[Document]] = None,
     analyzer: Optional[Callable[[str], Sequence[str]]] = None,
     stopwords: Optional[Sequence[str]] = None,
 ) -> TinySearch[Document, SparseMatrix]:
-    from tinysearch.indexers import SparseIndexer
+    from tinysearch.indexers import AnnSparseIndexer, SparseIndexer
     from tinysearch.storages import MemoryStorage
     from tinysearch.vectorizers import BM25Vectorizer
     from tinysearch.vocabulary import Vocabulary
@@ -30,13 +31,23 @@ def bm25(
     analyzed_documents = {doc["id"]: analyzer(doc["text"]) for doc in documents}
 
     vocab = Vocabulary.from_documents(analyzed_documents.values())
-    indexer = SparseIndexer(len(vocab))
+
+    indexer: Union[SparseIndexer, AnnSparseIndexer]
+    if approximate_search:
+        indexer = AnnSparseIndexer("dotprod")
+    else:
+        indexer = SparseIndexer("dotprod")
+
     vectorizer = BM25Vectorizer(vocab)
 
     for batch in util.batched(analyzed_documents.items(), batch_size):
         ids, docs = zip(*batch)
         vectors = vectorizer.vectorize_documents(docs)
         indexer.insert(ids, vectors)
+
+    if isinstance(indexer, AnnSparseIndexer):
+        print("Building ANN indexer...")
+        indexer.build(print_progress=True)
 
     return TinySearch(
         storage=storage,
@@ -82,9 +93,9 @@ def sif(
 
     indexer: Union[DenseIndexer, AnnDenseIndexer]
     if approximate_search:
-        indexer = AnnDenseIndexer()
+        indexer = AnnDenseIndexer(space="cosine")
     else:
-        indexer = DenseIndexer()
+        indexer = DenseIndexer(space="cosine")
 
     vectorizer = SifVectorizer(probabilities, embeddings, smoothing=smoothing)
 
@@ -94,7 +105,7 @@ def sif(
         indexer.insert(ids, vectors)
 
     if isinstance(indexer, AnnDenseIndexer):
-        print("Building index for ANN indexer...")
+        print("Building ANN indexer...")
         indexer.build(print_progress=True)
 
     return TinySearch(
@@ -136,9 +147,9 @@ def swem(
 
     indexer: Union[DenseIndexer, AnnDenseIndexer]
     if approximate_search:
-        indexer = AnnDenseIndexer()
+        indexer = AnnDenseIndexer(space="cosine")
     else:
-        indexer = DenseIndexer()
+        indexer = DenseIndexer(space="cosine")
 
     vectorizer = SwemVectorizer(embeddings, window_size=window_size, smoothing=smoothing)
 
@@ -148,7 +159,7 @@ def swem(
         indexer.insert(ids, vectors)
 
     if isinstance(indexer, AnnDenseIndexer):
-        print("Building index for ANN indexer...")
+        print("Building ANN indexer...")
         indexer.build(print_progress=True)
 
     return TinySearch(
