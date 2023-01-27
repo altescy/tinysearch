@@ -18,12 +18,11 @@ from tinysearch.analyzers import NltkAnalyzer
 def main() -> None:
     parser = argparse.ArgumentParser()
     parser.add_argument("output_filename", type=Path)
-    parser.add_argument("--subset", choices=["dev", "test"], default="dev")
     parser.add_argument("--k1", type=float, default=0.9)
     parser.add_argument("--b", type=float, default=0.4)
     args = parser.parse_args()
 
-    dataset_reader = DataLoader(f"beir/quora/{args.subset}")
+    dataset_reader = DataLoader(f"beir/quora")
     searcher = tinysearch.bm25(
         dataset_reader.load_documents(),
         analyzer=NltkAnalyzer(stemmer="porter"),
