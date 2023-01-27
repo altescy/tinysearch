@@ -19,7 +19,7 @@ class NDCG(Metrics):
 
     def __call__(self, gold: Sequence[Tuple[str, int]], pred: Sequence[Tuple[str, int]]) -> None:
         gold_relevance = numpy.sort([r for _, r in gold])[::-1][: self._topk]
-        pred_relevance = numpy.array([r for _, r in pred])[::-1][: self._topk]
+        pred_relevance = numpy.array([r for _, r in pred])[: self._topk]
 
         dcg = numpy.sum(pred_relevance / numpy.log2(numpy.arange(2, pred_relevance.size + 2)))
         idcg = numpy.sum(gold_relevance / numpy.log2(numpy.arange(2, gold_relevance.size + 2)))
