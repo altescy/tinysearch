@@ -35,7 +35,7 @@ def bm25(
     postprocessing_config: Optional[Mapping[str, Any]] = None,
 ) -> TinySearch[Document, SparseMatrix]:
     from tinysearch.analyzers import WhitespaceTokenizer
-    from tinysearch.indexers import AnnSparseIndexer, SparseIndexer
+    from tinysearch.indexers import AnnSparseIndexer, InvertedIndexer
     from tinysearch.storages import MemoryStorage
     from tinysearch.vectorizers import BM25Vectorizer
     from tinysearch.vocabulary import Vocabulary
@@ -65,11 +65,11 @@ def bm25(
                 docid = docid[:-10]
                 yield docid, doc["tokens"]
 
-    indexer: Union[SparseIndexer, AnnSparseIndexer]
+    indexer: Union[InvertedIndexer, AnnSparseIndexer]
     if approximate_search:
         indexer = AnnSparseIndexer(space="dotprod", **(indexer_config or {}))
     else:
-        indexer = SparseIndexer(space="dotprod", **(indexer_config or {}))
+        indexer = InvertedIndexer(**(indexer_config or {}))
 
     vectorizer = BM25Vectorizer(vocab)
 
