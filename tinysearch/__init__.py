@@ -273,6 +273,7 @@ def swem(
     analyzer: Optional[Callable[[str], Sequence[str]]] = None,
 ) -> TinySearch[Document, DenseMatrix]:
 
+    from tinysearch.analyzers import WhitespaceTokenizer
     from tinysearch.indexers import AnnDenseIndexer, DenseIndexer
     from tinysearch.storages import MemoryStorage
     from tinysearch.vectorizers import SwemVectorizer
@@ -287,7 +288,7 @@ def swem(
     elif storage is None:
         storage = MemoryStorage()
 
-    analyzer = analyzer or (lambda text: text.split())
+    analyzer = analyzer or WhitespaceTokenizer()
     num_documents = 0
     for document in util.progressbar(documents, desc="Loading documents"):
         num_documents += 1
