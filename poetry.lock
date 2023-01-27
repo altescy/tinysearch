@@ -99,18 +99,18 @@ colorama = {version = "*", markers = "sys_platform == \"win32\""}
 
 [[package]]
 name = "dacite"
-version = "1.7.0"
+version = "1.8.0"
 description = "Simple creation of data classes from dictionaries."
 category = "dev"
 optional = false
 python-versions = ">=3.6"
 files = [
-    {file = "dacite-1.7.0-py3-none-any.whl", hash = "sha256:1cf5f7f548aecaa80c800441f8b9f4d656f7601ccc06c9c8c96ee40016a021af"},
-    {file = "dacite-1.7.0.tar.gz", hash = "sha256:683a1d72c8fa0c0341034ddabc7a5c6f6ddc188033a26784417a9429dd3ffa51"},
+    {file = "dacite-1.8.0-py3-none-any.whl", hash = "sha256:f7b1205cc5d9b62835aac8cbc1e6e37c1da862359a401f1edbe2ae08fbdc6193"},
+    {file = "dacite-1.8.0.tar.gz", hash = "sha256:6257a5e505b61a8cafee7ef3ad08cf32ee9b885718f42395d017e0a9b4c6af65"},
 ]
 
 [package.extras]
-dev = ["black", "coveralls", "mypy", "pylint", "pytest (>=5)", "pytest-cov"]
+dev = ["black", "coveralls", "mypy", "pre-commit", "pylint", "pytest (>=5)", "pytest-benchmark", "pytest-cov"]
 
 [[package]]
 name = "exceptiongroup"
@@ -415,14 +415,14 @@ testing = ["docopt", "pytest (>=3.0.7)"]
 
 [[package]]
 name = "pathspec"
-version = "0.10.3"
+version = "0.11.0"
 description = "Utility library for gitignore style pattern matching of file paths."
 category = "dev"
 optional = false
 python-versions = ">=3.7"
 files = [
-    {file = "pathspec-0.10.3-py3-none-any.whl", hash = "sha256:3c95343af8b756205e2aba76e843ba9520a24dd84f68c22b9f93251507509dd6"},
-    {file = "pathspec-0.10.3.tar.gz", hash = "sha256:56200de4077d9d0791465aa9095a01d421861e405b5096955051deefd697d6f6"},
+    {file = "pathspec-0.11.0-py3-none-any.whl", hash = "sha256:3a66eb970cbac598f9e5ccb5b2cf58930cd8e3ed86d393d541eaf2d8b1705229"},
+    {file = "pathspec-0.11.0.tar.gz", hash = "sha256:64d338d4e0914e91c1792321e6907b5a593f1ab1851de7fc269557a21b30ebbc"},
 ]
 
 [[package]]
@@ -798,5 +798,5 @@ nmslib = ["nmslib"]
 
 [metadata]
 lock-version = "2.0"
-python-versions = ">=3.8.1,<3.12"
-content-hash = "62f411017bc1316837e37478f3175362631766b931c501adc47977740aff11b4"
+python-versions = ">=3.8.1,<3.11"
+content-hash = "f2665237c83f4751ebe9d055a4c19f1f9424fd1f260af036885a818bf7f64cfb"
