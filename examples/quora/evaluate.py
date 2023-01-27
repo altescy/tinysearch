@@ -35,14 +35,14 @@ def main() -> None:
         pred = [(doc["id"], relations[(query["id"], doc["id"])]) for doc in search_results]
         metrics(gold, pred)
         metrics_str = ", ".join(f"{k}={v:.4f}" for k, v in metrics.get_metrics().items())
-        print(f"\r{100 * i/len(golds):6.2f}% speed={elapsed_time/i:.4f}s/q {metrics_str}", end="")
+        print(f"\r{100 * i/len(golds):6.2f}% speed={i/elapsed_time:.4f}qs/s {metrics_str}", end="")
 
     print()
 
     evaluation_result = {f"{k}@{args.topk}": v for k, v in metrics.get_metrics().items()}
     max_namelen = max(len(k) for k in evaluation_result.keys())
     print("Evaluation result:")
-    print("  Average time / query:", elapsed_time / len(golds))
+    print("  Average queries/s:", len(golds) / elapsed_time)
     print("  Metrics:")
     for name, value in evaluation_result.items():
         print(f"    {name:<{max_namelen}s}: {value:.4f}")
