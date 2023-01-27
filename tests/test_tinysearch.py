@@ -67,6 +67,21 @@ def test_swem() -> None:
     assert results[2]["id"] == "1"
 
 
+def test_transformer() -> None:
+    documents = [
+        {"id": "0", "text": "hello there good man !"},
+        {"id": "1", "text": "how is the weather today ?"},
+        {"id": "2", "text": "it is quite windy in yokohama"},
+    ]
+
+    searcher = tinysearch.transformer(documents, "prajjwal1/bert-tiny")
+    results = searcher.search("weather windy yokohama")
+    assert len(results) == 3
+    assert results[0]["id"] == "2"
+    assert results[1]["id"] == "1"
+    assert results[2]["id"] == "0"
+
+
 def test_save_and_load(tmp_path: Path) -> None:
     documents = [
         {"id": "0", "text": "hello there good man !"},
