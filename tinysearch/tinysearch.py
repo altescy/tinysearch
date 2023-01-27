@@ -1,6 +1,6 @@
 import pickle
 from os import PathLike
-from typing import Generic, List, Literal, Optional, Sequence, Tuple, Type, TypeVar, Union, overload
+from typing import Generic, List, Literal, Optional, Tuple, Type, TypeVar, Union, overload
 
 from tinysearch.indexers import Indexer
 from tinysearch.storages import Storage
@@ -17,13 +17,11 @@ class TinySearch(Generic[Document, Matrix]):
         indexer: Indexer[Matrix],
         vectorizer: Vectorizer[Matrix],
         analyzer: Analyzer,
-        stopwords: Optional[Sequence[str]] = None,
     ) -> None:
         self.storage: Storage[Document] = storage
         self.indexer: Indexer[Matrix] = indexer
         self.vectorizer: Vectorizer[Matrix] = vectorizer
         self.analyzer = analyzer
-        self.stopwords = set(stopwords or ())
 
     @overload
     def search(
@@ -61,9 +59,7 @@ class TinySearch(Generic[Document, Matrix]):
         return_scores: bool = False,
         topk: Optional[int] = 10,
     ) -> Union[List[Document], List[Tuple[Document, float]]]:
-        tokens = list(self.analyzer(query))
-        if self.stopwords:
-            tokens = [token for token in tokens if token not in self.stopwords]
+        tokens = self.analyzer(query)
         query_vector = self.vectorizer.vectorize_queries([tokens])
         results = self.indexer.search(query_vector, topk=topk)[0]
         if return_scores:

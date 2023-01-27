@@ -30,7 +30,6 @@ def bm25(
     approximate_search: bool = False,
     storage: Optional[Storage[Document]] = None,
     analyzer: Optional[Callable[[str], Sequence[str]]] = None,
-    stopwords: Optional[Sequence[str]] = None,
     indexer_config: Optional[Mapping[str, Any]] = None,
     postprocessing_config: Optional[Mapping[str, Any]] = None,
 ) -> TinySearch[Document, SparseMatrix]:
@@ -94,7 +93,6 @@ def bm25(
         indexer=indexer,
         vectorizer=vectorizer,
         analyzer=analyzer,
-        stopwords=stopwords,
     )
 
 
@@ -108,7 +106,6 @@ def tfidf(
     approximate_search: bool = False,
     storage: Optional[Storage[Document]] = None,
     analyzer: Optional[Callable[[str], Sequence[str]]] = None,
-    stopwords: Optional[Sequence[str]] = None,
 ) -> TinySearch[Document, SparseMatrix]:
     from tinysearch.analyzers import WhitespaceTokenizer
     from tinysearch.indexers import AnnSparseIndexer, SparseIndexer
@@ -170,7 +167,6 @@ def tfidf(
         indexer=indexer,
         vectorizer=vectorizer,
         analyzer=analyzer,
-        stopwords=stopwords,
     )
 
 
@@ -187,7 +183,6 @@ def sif(
     approximate_search: bool = False,
     storage: Optional[Storage[Document]] = None,
     analyzer: Optional[Callable[[str], Sequence[str]]] = None,
-    stopwords: Optional[Sequence[str]] = None,
 ) -> TinySearch[Document, DenseMatrix]:
 
     from tinysearch.analyzers import WhitespaceTokenizer
@@ -260,7 +255,6 @@ def sif(
         indexer=indexer,
         vectorizer=vectorizer,
         analyzer=analyzer,
-        stopwords=stopwords,
     )
 
 
@@ -277,7 +271,6 @@ def swem(
     approximate_search: bool = False,
     storage: Optional[Storage[Document]] = None,
     analyzer: Optional[Callable[[str], Sequence[str]]] = None,
-    stopwords: Optional[Sequence[str]] = None,
 ) -> TinySearch[Document, DenseMatrix]:
 
     from tinysearch.indexers import AnnDenseIndexer, DenseIndexer
@@ -341,7 +334,6 @@ def swem(
         indexer=indexer,
         vectorizer=vectorizer,
         analyzer=analyzer,
-        stopwords=stopwords,
     )
 
 
@@ -357,7 +349,6 @@ def transformer(
     approximate_search: bool = False,
     storage: Optional[Storage[Document]] = None,
     analyzer: Optional[Callable[[str], str]] = None,
-    stopwords: Optional[Sequence[str]] = None,
 ) -> TinySearch[Document, DenseMatrix]:
 
     from tinysearch.analyzers import PassThroughAnalyzer
@@ -417,5 +408,4 @@ def transformer(
         indexer=indexer,
         vectorizer=vectorizer,
         analyzer=analyzer,
-        stopwords=stopwords,
     )
