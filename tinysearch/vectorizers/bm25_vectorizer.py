@@ -34,6 +34,8 @@ class BM25Vectorizer(Vectorizer[sparse.csr_matrix]):
     def vectorize_documents(self, documents: Sequence[Sequence[str]]) -> sparse.csr_matrix:
         k1 = self.k1
         b = self.b
+        N = self.vocab.number_of_documents
+        avgl = self.vocab.average_document_length
 
         row: List[int] = []
         col: List[int] = []
@@ -42,11 +44,9 @@ class BM25Vectorizer(Vectorizer[sparse.csr_matrix]):
             tokens = [token for token in tokens if token in self.vocab]
             counter = Counter(tokens)
             D = len(tokens)
-            N = self.vocab.number_of_documents
-            avgl = self.vocab.average_document_length
             for token, count in counter.items():
                 n = self.vocab.document_frequency[token]
-                idf = math.log(N - n + 0.5) - math.log(n + 0.5)
+                idf = math.log((N - n + 0.5) / (n + 0.5) + 1.0)
                 weight = count * (k1 + 1) / (count + k1 * (1 - b + b * D / avgl))
                 value = idf * weight
                 token_index = self.vocab[token]
