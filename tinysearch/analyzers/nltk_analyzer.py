@@ -5,11 +5,12 @@ from typing import Callable, List, Optional, Sequence, Tuple, cast
 class NltkAnalyzer:
     def __init__(
         self,
-        stopwords: Sequence[str] = (),
-        ngram_range: Tuple[int, int] = (1, 1),
+        *,
         lowercase: bool = True,
+        ngram_range: Optional[Tuple[int, int]] = None,
+        stopwords: Sequence[str] = (),
         remove_punctuation: bool = True,
-        stemmer: Optional[str] = "porter",
+        stemmer: Optional[str] = None,
     ) -> None:
         from nltk import word_tokenize
 
@@ -31,16 +32,15 @@ class NltkAnalyzer:
             from nltk.stem.snowball import SnowballStemmer
 
             self._stemmer = SnowballStemmer("english")
-        elif stemmer == "wordnet":
-            from nltk.stem import WordNetLemmatizer
-
-            self._stemmer = WordNetLemmatizer()
         elif stemmer is None:
             self._stemmer = None
         else:
             raise ValueError(f"Unknown stemmer: {stemmer}")
 
     def _ngramize(self, tokens: Sequence[str]) -> List[str]:
+        if self._ngram_range is None:
+            raise ValueError("ngram_range is not set")
+
         ngrams = []
         for n in range(self._ngram_range[0], self._ngram_range[1] + 1):
             ngrams.extend(["##".join(tokens[i : i + n]) for i in range(len(tokens) - n + 1)])

@@ -26,7 +26,7 @@ def main() -> None:
     dataset_reader = DataLoader(f"beir/quora/{args.subset}")
     searcher = tinysearch.bm25(
         dataset_reader.load_documents(),
-        analyzer=NltkAnalyzer(),
+        analyzer=NltkAnalyzer(stemmer="porter"),
     )
 
     searcher.save(args.output_filename)
