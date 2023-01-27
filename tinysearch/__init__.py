@@ -343,3 +343,79 @@ def swem(
         analyzer=analyzer,
         stopwords=stopwords,
     )
+
+
+def transformer(
+    documents: Iterable[Document],
+    model_name: str,
+    *,
+    id_field: str = "id",
+    text_field: str = "text",
+    similarity: str = "cosine",
+    vectorization_method: str = "sum",
+    batch_size: int = 1000,
+    approximate_search: bool = False,
+    storage: Optional[Storage[Document]] = None,
+    analyzer: Optional[Callable[[str], str]] = None,
+    stopwords: Optional[Sequence[str]] = None,
+) -> TinySearch[Document, DenseMatrix]:
+
+    from tinysearch.analyzers import PassThroughAnalyzer
+    from tinysearch.indexers import AnnDenseIndexer, DenseIndexer
+    from tinysearch.storages import MemoryStorage
+    from tinysearch.vectorizers import TransformerVectorizer
+
+    if isinstance(documents, Storage):
+        storage = documents
+    elif storage is None:
+        storage = MemoryStorage()
+
+    analyzer = analyzer or PassThroughAnalyzer()
+    num_documents = 0
+    for document in util.progressbar(documents, desc="Loading documents"):
+        num_documents += 1
+        docid = document[id_field]
+        if docid not in storage:
+            storage[docid] = document
+        docid_analyzed = f"{docid}__analyzed"
+        if docid_analyzed not in storage:
+            storage[docid_analyzed] = cast(Document, {"id": docid, "tokens": analyzer(document[text_field])})
+
+    storage.flush()
+
+    def iter_analyzed_texts() -> Iterable[Tuple[str, Sequence[str]]]:
+        assert storage is not None
+        for docid, doc in storage.items():
+            if docid.endswith("__analyzed"):
+                docid = docid[:-10]
+                yield docid, doc["tokens"]
+
+    indexer: Union[DenseIndexer, AnnDenseIndexer]
+    if approximate_search:
+        indexer = AnnDenseIndexer(space=similarity)
+    else:
+        indexer = DenseIndexer(space=similarity)
+
+    vectorizer = TransformerVectorizer(model_name, method=vectorization_method)
+
+    num_batches = math.ceil(num_documents / batch_size)
+    for batch in util.progressbar(
+        util.batched(iter_analyzed_texts(), batch_size),
+        total=num_batches,
+        desc="Indexing documents",
+    ):
+        ids, docs = zip(*batch)
+        vectors = vectorizer.vectorize_documents(docs)
+        indexer.insert(ids, vectors)
+
+    if isinstance(indexer, AnnDenseIndexer):
+        print("Building ANN indexer...")
+        indexer.build(print_progress=True)
+
+    return TinySearch(
+        storage=storage,
+        indexer=indexer,
+        vectorizer=vectorizer,
+        analyzer=analyzer,
+        stopwords=stopwords,
+    )
