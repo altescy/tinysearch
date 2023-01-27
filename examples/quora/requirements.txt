@@ -1,3 +1,4 @@
+nltk
 nmslib
 ir_datasets
 git+https://github.com/altescy/tinysearch.git

@@ -8,11 +8,11 @@ from typing import Any, Dict, Iterator, List, Sequence, Set, Tuple, Union, cast
 
 import ir_datasets
 import numpy
-from src.analyzer import SimpleAnalyzer
 from src.dataloader import DataLoader
 from src.metrics import NDCG, FMeasure, MultiMetrics
 
 import tinysearch
+from tinysearch.analyzers import NltkAnalyzer
 
 
 def main() -> None:
@@ -26,7 +26,7 @@ def main() -> None:
     dataset_reader = DataLoader(f"beir/quora/{args.subset}")
     searcher = tinysearch.bm25(
         dataset_reader.load_documents(),
-        analyzer=SimpleAnalyzer(),
+        analyzer=NltkAnalyzer(),
     )
 
     searcher.save(args.output_filename)
