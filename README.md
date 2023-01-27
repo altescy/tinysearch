@@ -20,4 +20,7 @@ results = searcher.search("weather windy yokohama")
 print(results)
 # [{'id': '2', 'text': 'it is quite windy in yokohama'},
 #  {'id': '1', 'text': 'how is the weather today ?'}]
+
+searcher.save("tinysearch.bin")
+searcher = tinyserach.load("tinysearch.bin")
 ```
