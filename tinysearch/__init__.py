@@ -1,7 +1,7 @@
 import math
 from importlib.metadata import version
 from os import PathLike
-from typing import Callable, Iterable, Mapping, Optional, Sequence, Tuple, Union, cast
+from typing import Any, Callable, Iterable, Mapping, Optional, Sequence, Tuple, Union, cast
 
 from tinysearch import util
 from tinysearch.storages import Storage
@@ -22,6 +22,8 @@ def load(path: PathLike) -> TinySearch:
 def bm25(
     documents: Iterable[Document],
     *,
+    k1: float = 1.5,
+    b: float = 0.75,
     id_field: str = "id",
     text_field: str = "text",
     batch_size: int = 1000,
@@ -29,6 +31,8 @@ def bm25(
     storage: Optional[Storage[Document]] = None,
     analyzer: Optional[Callable[[str], Sequence[str]]] = None,
     stopwords: Optional[Sequence[str]] = None,
+    indexer_config: Optional[Mapping[str, Any]] = None,
+    postprocessing_config: Optional[Mapping[str, Any]] = None,
 ) -> TinySearch[Document, SparseMatrix]:
     from tinysearch.analyzers import WhitespaceTokenizer
     from tinysearch.indexers import AnnSparseIndexer, SparseIndexer
@@ -63,9 +67,9 @@ def bm25(
 
     indexer: Union[SparseIndexer, AnnSparseIndexer]
     if approximate_search:
-        indexer = AnnSparseIndexer("dotprod")
+        indexer = AnnSparseIndexer(space="dotprod", **(indexer_config or {}))
     else:
-        indexer = SparseIndexer("dotprod")
+        indexer = SparseIndexer(space="dotprod", **(indexer_config or {}))
 
     vectorizer = BM25Vectorizer(vocab)
 
@@ -81,7 +85,7 @@ def bm25(
 
     if isinstance(indexer, AnnSparseIndexer):
         print("Building ANN indexer...")
-        indexer.build(print_progress=True)
+        indexer.build(print_progress=True, **(postprocessing_config or {}))
 
     return TinySearch(
         storage=storage,

@@ -25,6 +25,7 @@ class AnnSparseIndexer(Indexer[SparseMatrix]):
         space: str,
         method: str = "hnsw",
         threshold: float = 0.0,
+        space_params: Optional[Dict[str, Any]] = None,
     ) -> None:
         import nmslib
 
@@ -36,6 +37,7 @@ class AnnSparseIndexer(Indexer[SparseMatrix]):
             method=method,
             space=self.NMSLIB_SPACES[space],
             data_type=nmslib.DataType.SPARSE_VECTOR,
+            space_params=space_params,
         )
         self._index = nmslib.init(**self._index_args)
         self._distance_to_similarity = functools.partial(distance_to_similarity, space)
@@ -52,8 +54,8 @@ class AnnSparseIndexer(Indexer[SparseMatrix]):
         indices = numpy.array([self._id_to_index[id_] for id_ in ids])
         self._index.addDataPointBatch(data, indices)
 
-    def build(self, **kwargs: Any) -> None:
-        self._index.createIndex(**kwargs)
+    def build(self, *args: Any, **kwargs: Any) -> None:
+        self._index.createIndex(*args, **kwargs)
 
     def search(self, queries: SparseMatrix, topk: Optional[int]) -> List[List[Tuple[str, float]]]:
         if topk is None:

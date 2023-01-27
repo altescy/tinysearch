@@ -23,13 +23,10 @@ class BM25Vectorizer(Vectorizer[sparse.csr_matrix]):
             for token, count in counter.items():
                 if token not in self.vocab:
                     continue
-                N = self.vocab.number_of_documents
-                n = self.vocab.document_frequency[token]
-                idf = math.log(N - n + 0.5) - math.log(n + 0.5)
                 token_index = self.vocab[token]
                 row.append(query_index)
                 col.append(token_index)
-                data.append(idf * count)
+                data.append(count)
 
         shape = (len(queies), len(self.vocab))
         return sparse.csr_matrix((data, (row, col)), shape=shape)
@@ -45,9 +42,13 @@ class BM25Vectorizer(Vectorizer[sparse.csr_matrix]):
             tokens = [token for token in tokens if token in self.vocab]
             counter = Counter(tokens)
             D = len(tokens)
+            N = self.vocab.number_of_documents
+            avgl = self.vocab.average_document_length
             for token, count in counter.items():
-                avgl = self.vocab.average_document_length
-                value = count * (k1 + 1) / (count + k1 * (1 - b + b * D / avgl))
+                n = self.vocab.document_frequency[token]
+                idf = math.log(N - n + 0.5) - math.log(n + 0.5)
+                weight = count * (k1 + 1) / (count + k1 * (1 - b + b * D / avgl))
+                value = idf * weight
                 token_index = self.vocab[token]
                 row.append(document_index)
                 col.append(token_index)
