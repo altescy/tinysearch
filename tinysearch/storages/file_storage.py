@@ -5,7 +5,7 @@ from contextlib import contextmanager
 from io import BytesIO
 from os import PathLike
 from pathlib import Path
-from typing import BinaryIO, Dict, Generic, Iterator, NamedTuple, Optional, Tuple, TypedDict, TypeVar, Union, cast
+from typing import BinaryIO, Dict, Iterator, NamedTuple, Optional, Tuple, TypedDict, TypeVar, Union, cast
 
 from tinysearch.storages.storage import Storage
 
