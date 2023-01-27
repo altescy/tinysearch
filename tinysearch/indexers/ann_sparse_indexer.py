@@ -22,7 +22,7 @@ class AnnSparseIndexer(Indexer[SparseMatrix]):
 
     def __init__(
         self,
-        space: str,
+        space: str = "dotprod",
         method: str = "hnsw",
         threshold: float = 0.0,
         space_params: Optional[Dict[str, Any]] = None,

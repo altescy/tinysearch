@@ -17,7 +17,7 @@ class AnnDenseIndexer(Indexer[DenseMatrix]):
         "linf": "linf",
     }
 
-    def __init__(self, space: str, method: str = "hnsw") -> None:
+    def __init__(self, space: str = "dotprod", method: str = "hnsw") -> None:
         import nmslib
 
         if space not in self.NMSLIB_SPACES:

@@ -9,7 +9,7 @@ from tinysearch.typing import DenseMatrix
 class DenseIndexer(Indexer[DenseMatrix]):
     AVAILABLE_SPACES = {"dotprod", "cosine", "l1", "l2", "linf"}
 
-    def __init__(self, space: str) -> None:
+    def __init__(self, space: str = "dotprod") -> None:
         if space not in self.AVAILABLE_SPACES:
             raise ValueError(f"Unknown space {space}.")
         self._space = space

@@ -9,7 +9,7 @@ from tinysearch.util import csr_row_normalize
 class SparseIndexer(Indexer[sparse.csr_matrix]):
     AVAILABLE_SPACES = {"dotprod", "cosine"}
 
-    def __init__(self, space: str, threshold: float = 0.0) -> None:
+    def __init__(self, space: str = "dotprod", threshold: float = 0.0) -> None:
         if space not in self.AVAILABLE_SPACES:
             raise ValueError(f"Unknown space {space}.")
 

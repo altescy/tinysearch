@@ -102,13 +102,14 @@ def tfidf(
     id_field: str = "id",
     text_field: str = "text",
     batch_size: int = 1000,
-    similarity: str = "cosine",
     approximate_search: bool = False,
     storage: Optional[Storage[Document]] = None,
     analyzer: Optional[Callable[[str], Sequence[str]]] = None,
+    indexer_config: Optional[Mapping[str, Any]] = None,
+    postprocessing_config: Optional[Mapping[str, Any]] = None,
 ) -> TinySearch[Document, SparseMatrix]:
     from tinysearch.analyzers import WhitespaceTokenizer
-    from tinysearch.indexers import AnnSparseIndexer, SparseIndexer
+    from tinysearch.indexers import AnnSparseIndexer, InvertedIndexer
     from tinysearch.storages import MemoryStorage
     from tinysearch.vectorizers import TfidfVectorizer
     from tinysearch.vocabulary import Vocabulary
@@ -140,11 +141,11 @@ def tfidf(
                 docid = docid[:-10]
                 yield docid, doc["tokens"]
 
-    indexer: Union[SparseIndexer, AnnSparseIndexer]
+    indexer: Union[InvertedIndexer, AnnSparseIndexer]
     if approximate_search:
-        indexer = AnnSparseIndexer(space=similarity)
+        indexer = AnnSparseIndexer(**(indexer_config or {}))
     else:
-        indexer = SparseIndexer(space=similarity)
+        indexer = InvertedIndexer(**(indexer_config or {}))
 
     vectorizer = TfidfVectorizer(vocab)
 
@@ -160,7 +161,7 @@ def tfidf(
 
     if isinstance(indexer, AnnSparseIndexer):
         print("Building ANN indexer...")
-        indexer.build(print_progress=True)
+        indexer.build(print_progress=True, **(postprocessing_config or {}))
 
     return TinySearch(
         storage=storage,
