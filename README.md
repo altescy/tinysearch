@@ -13,6 +13,9 @@ documents = [
 ]
 
 searcher = tinysearch.bm25(documents)
+# searcher = tinysearch.tfidf(documents)
+# searcher = tinysearch.transformer(documents, "bert-base-uncased")
+
 results = searcher.search("weather windy yokohama")
 print(results)
 # [{'id': '2', 'text': 'it is quite windy in yokohama'},
