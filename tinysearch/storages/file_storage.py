@@ -5,7 +5,7 @@ from contextlib import contextmanager
 from io import BytesIO
 from os import PathLike
 from pathlib import Path
-from typing import BinaryIO, Dict, Iterator, NamedTuple, Optional, Tuple, TypedDict, TypeVar, Union, cast
+from typing import Any, BinaryIO, Dict, Iterator, NamedTuple, Optional, Tuple, TypedDict, TypeVar, Union, cast
 
 from tinysearch.storages.storage import Storage
 
@@ -62,15 +62,22 @@ class FileStorage(Storage[T]):
         self._pageios: Dict[int, BinaryIO] = {}
 
         self._path.mkdir(parents=True, exist_ok=True)
+        self._restore()
+        self._save_metadata()
+
+    def __getstate__(self) -> Dict[str, Any]:
+        return {"path": self._path}
+
+    def __setstate__(self, state: Dict[str, Any]) -> None:
+        self._path = state["path"]
+        self._restore()
+
+    def _restore(self) -> None:
+        self._load_metadata()
+
         index_filename = self._get_index_filename()
         if not index_filename.exists():
             index_filename.touch()
-
-        metadata_filename = self._get_metadata_filename()
-        if metadata_filename.exists():
-            self._load_metadata()
-        else:
-            self._save_metadata()
 
         self._indexio: BinaryIO = index_filename.open("rb+")
         if self._indexio.seek(0, 2) > 0:
