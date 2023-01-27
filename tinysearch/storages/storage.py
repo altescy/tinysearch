@@ -35,3 +35,9 @@ class Storage(abc.ABC, Generic[T]):
 
     def items(self) -> Iterator[Tuple[str, T]]:
         return zip(self.keys(), self.values())
+
+    def flush(self) -> None:
+        pass
+
+    def close(self) -> None:
+        pass

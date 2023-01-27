@@ -58,6 +58,8 @@ def bm25(
             storage[docid_analyzed] = cast(Document, {"id": docid, "tokens": analyzer(document[text_field])})
         vocab.add_document(storage[docid_analyzed]["tokens"])
 
+    storage.flush()
+
     def iter_analyzed_texts() -> Iterable[Tuple[str, Sequence[str]]]:
         assert storage is not None
         for docid, doc in storage.items():
@@ -131,6 +133,8 @@ def tfidf(
         if docid_analyzed not in storage:
             storage[docid_analyzed] = cast(Document, {"id": docid, "tokens": analyzer(document[text_field])})
         vocab.add_document(storage[docid_analyzed]["tokens"])
+
+    storage.flush()
 
     def iter_analyzed_texts() -> Iterable[Tuple[str, Sequence[str]]]:
         assert storage is not None
@@ -216,6 +220,8 @@ def sif(
         if vocab is not None:
             vocab.add_document(storage[docid_analyzed]["tokens"])
 
+    storage.flush()
+
     def iter_analyzed_texts() -> Iterable[Tuple[str, Sequence[str]]]:
         assert storage is not None
         for docid, doc in storage.items():
@@ -298,6 +304,8 @@ def swem(
             storage[docid] = document
         if docid_analyzed not in storage:
             storage[docid_analyzed] = cast(Document, {"id": docid, "tokens": analyzer(document[text_field])})
+
+    storage.flush()
 
     def iter_analyzed_texts() -> Iterable[Tuple[str, Sequence[str]]]:
         assert storage is not None
