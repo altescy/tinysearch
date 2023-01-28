@@ -1,4 +1,7 @@
 nltk
+minato
 nmslib
 ir_datasets
+torch
+transformers
 git+https://github.com/altescy/tinysearch.git
