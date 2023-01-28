@@ -2,7 +2,7 @@
 
 ## Benchmark Results
 
-### BM25 with NLTK analyzer
+### BM25 w/ NLTK analyzer
 
 |      | nDCG@10 | Recall@10 |
 |------|---------|-----------|
