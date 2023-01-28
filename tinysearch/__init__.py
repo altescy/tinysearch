@@ -178,12 +178,13 @@ def sif(
     id_field: str = "id",
     text_field: str = "text",
     probabilities: Optional[Mapping[str, float]] = None,
-    similarity: str = "cosine",
     smoothing: float = 1e-3,
     batch_size: int = 1000,
     approximate_search: bool = False,
     storage: Optional[Storage[Document]] = None,
     analyzer: Optional[Callable[[str], Sequence[str]]] = None,
+    indexer_config: Optional[Mapping[str, Any]] = None,
+    postprocessing_config: Optional[Mapping[str, Any]] = None,
 ) -> TinySearch[Document, DenseMatrix]:
 
     from tinysearch.analyzers import WhitespaceTokenizer
@@ -229,11 +230,13 @@ def sif(
         assert vocab is not None
         probabilities = {token: vocab.get_token_probability(token) for token in vocab.token_to_index}
 
+    indexer_config = {"space": "cosine", **(indexer_config or {})}
+
     indexer: Union[DenseIndexer, AnnDenseIndexer]
     if approximate_search:
-        indexer = AnnDenseIndexer(space=similarity)
+        indexer = AnnDenseIndexer(**indexer_config)
     else:
-        indexer = DenseIndexer(space=similarity)
+        indexer = DenseIndexer(**indexer_config)
 
     vectorizer = SifVectorizer(probabilities, embeddings, smoothing=smoothing)
 
@@ -249,7 +252,7 @@ def sif(
 
     if isinstance(indexer, AnnDenseIndexer):
         print("Building ANN indexer...")
-        indexer.build(print_progress=True)
+        indexer.build(print_progress=True, **(postprocessing_config or {}))
 
     return TinySearch(
         storage=storage,
@@ -265,13 +268,14 @@ def swem(
     *,
     id_field: str = "id",
     text_field: str = "text",
-    similarity: str = "cosine",
     window_size: int = 3,
     smoothing: float = 1e-3,
     batch_size: int = 1000,
     approximate_search: bool = False,
     storage: Optional[Storage[Document]] = None,
     analyzer: Optional[Callable[[str], Sequence[str]]] = None,
+    indexer_config: Optional[Mapping[str, Any]] = None,
+    postprocessing_config: Optional[Mapping[str, Any]] = None,
 ) -> TinySearch[Document, DenseMatrix]:
 
     from tinysearch.analyzers import WhitespaceTokenizer
@@ -309,11 +313,13 @@ def swem(
                 docid = docid[:-10]
                 yield docid, doc["tokens"]
 
+    indexer_config = {"space": "cosine", **(indexer_config or {})}
+
     indexer: Union[DenseIndexer, AnnDenseIndexer]
     if approximate_search:
-        indexer = AnnDenseIndexer(space=similarity)
+        indexer = AnnDenseIndexer(**indexer_config)
     else:
-        indexer = DenseIndexer(space=similarity)
+        indexer = DenseIndexer(**indexer_config)
 
     vectorizer = SwemVectorizer(embeddings, window_size=window_size, smoothing=smoothing)
 
@@ -329,7 +335,7 @@ def swem(
 
     if isinstance(indexer, AnnDenseIndexer):
         print("Building ANN indexer...")
-        indexer.build(print_progress=True)
+        indexer.build(print_progress=True, **(postprocessing_config or {}))
 
     return TinySearch(
         storage=storage,
@@ -345,12 +351,13 @@ def transformer(
     *,
     id_field: str = "id",
     text_field: str = "text",
-    similarity: str = "cosine",
     vectorization_method: str = "sum",
     batch_size: int = 1000,
     approximate_search: bool = False,
     storage: Optional[Storage[Document]] = None,
     analyzer: Optional[Callable[[str], str]] = None,
+    indexer_config: Optional[Mapping[str, Any]] = None,
+    postprocessing_config: Optional[Mapping[str, Any]] = None,
 ) -> TinySearch[Document, DenseMatrix]:
 
     from tinysearch.analyzers import PassThroughAnalyzer
@@ -383,11 +390,13 @@ def transformer(
                 docid = docid[:-10]
                 yield docid, doc["tokens"]
 
+    indexer_config = {"space": "cosine", **(indexer_config or {})}
+
     indexer: Union[DenseIndexer, AnnDenseIndexer]
     if approximate_search:
-        indexer = AnnDenseIndexer(space=similarity)
+        indexer = AnnDenseIndexer(**indexer_config)
     else:
-        indexer = DenseIndexer(space=similarity)
+        indexer = DenseIndexer(**indexer_config)
 
     vectorizer = TransformerVectorizer(model_name, method=vectorization_method)
 
@@ -403,7 +412,7 @@ def transformer(
 
     if isinstance(indexer, AnnDenseIndexer):
         print("Building ANN indexer...")
-        indexer.build(print_progress=True)
+        indexer.build(print_progress=True, **(postprocessing_config or {}))
 
     return TinySearch(
         storage=storage,
