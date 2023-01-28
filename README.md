@@ -1,6 +1,7 @@
 # TinySearch
 
 [![Actions Status](https://github.com/altescy/tinysearch/workflows/CI/badge.svg)](https://github.com/altescy/tinysearch/actions/workflows/ci.yml)
+[![GitHub release (latest by date)](https://img.shields.io/github/v/release/altescy/tinysearch)](https://github.com/altescy/tinysearch/releases)
 [![License](https://img.shields.io/github/license/altescy/tinysearch)](https://github.com/altescy/tinysearch/blob/main/LICENSE)
 
 ```python
