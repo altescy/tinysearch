@@ -3,7 +3,6 @@ import itertools
 import sys
 import threading
 import time
-from collections import defaultdict
 from concurrent.futures import ThreadPoolExecutor
 from os import PathLike
 from typing import Any, Callable, Dict, Iterable, Iterator, List, Optional, Sized, TextIO, TypeVar, Union
@@ -111,8 +110,7 @@ def load_pretrained_embeddings(filename: Union[str, PathLike]) -> Dict[str, nump
             word = parts[0]
             embedding = numpy.array([float(x) for x in parts[1:]])
             embeddings[word] = embedding
-
-    return defaultdict(lambda: numpy.zeros(len(embedding)), embeddings)
+    return embeddings
 
 
 def distance_to_similarity(space: str, distance: float) -> float:

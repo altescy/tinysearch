@@ -1,4 +1,6 @@
 import functools
+import tempfile
+from pathlib import Path
 from typing import Any, Dict, List, Optional, Sequence, Tuple
 
 import numpy
@@ -17,13 +19,24 @@ class AnnDenseIndexer(Indexer[DenseMatrix]):
         "linf": "linf",
     }
 
-    def __init__(self, space: str = "dotprod", method: str = "hnsw") -> None:
+    def __init__(
+        self,
+        space: str = "dotprod",
+        method: str = "hnsw",
+        space_params: Optional[Dict[str, Any]] = None,
+    ) -> None:
         import nmslib
 
         if space not in self.NMSLIB_SPACES:
             raise ValueError(f"Unknown space {space}.")
 
-        self._index = nmslib.init(method=method, space=self.NMSLIB_SPACES[space])
+        self._index_args = dict(
+            method=method,
+            space=self.NMSLIB_SPACES[space],
+            data_type=nmslib.DataType.DENSE_VECTOR,
+            space_params=space_params,
+        )
+        self._index = nmslib.init(**self._index_args)
         self._distance_to_similarity = functools.partial(distance_to_similarity, space)
         self._id_to_index: Dict[str, int] = {}
         self._index_to_id: Dict[int, str] = {}
@@ -52,3 +65,46 @@ class AnnDenseIndexer(Indexer[DenseMatrix]):
         ]
 
         return results
+
+    def __getstate__(self) -> Dict[str, Any]:
+        with tempfile.TemporaryDirectory() as _workdir:
+            workdir = Path(_workdir)
+            index_filename = workdir / "index.bin"
+            index_data_filename = workdir / "index.bin.dat"
+            self._index.saveIndex(str(index_filename), save_data=True)
+            assert index_data_filename.is_file()
+            with index_filename.open("rb") as binfile:
+                indexder_bytes = binfile.read()
+            with index_data_filename.open("rb") as binfile:
+                index_data_bytes = binfile.read()
+
+        state = {
+            "index": indexder_bytes,
+            "index_data": index_data_bytes,
+            "index_args": self._index_args,
+            "distance_to_similarity": self._distance_to_similarity,
+            "id_to_index": self._id_to_index,
+            "index_to_id": self._index_to_id,
+        }
+        return state
+
+    def __setstate__(self, state: Dict[str, Any]) -> None:
+        import nmslib
+
+        self._index_args = state["index_args"]
+        self._distance_to_similarity = state["distance_to_similarity"]
+        self._id_to_index = state["id_to_index"]
+        self._index_to_id = state["index_to_id"]
+
+        self._index = nmslib.init(**self._index_args)
+
+        with tempfile.TemporaryDirectory() as _workdir:
+            workdir = Path(_workdir)
+            index_filename = workdir / "index.bin"
+            index_data_filename = workdir / "index.bin.dat"
+            with index_filename.open("wb") as binfile:
+                binfile.write(state["index"])
+            with index_data_filename.open("wb") as binfile:
+                binfile.write(state["index_data"])
+
+            self._index.loadIndex(str(index_filename), load_data=True)

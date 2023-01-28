@@ -1,4 +1,4 @@
-from typing import Mapping, Sequence
+from typing import Mapping, Sequence, cast
 
 import numpy
 
@@ -22,14 +22,16 @@ class SwemVectorizer(Vectorizer[DenseMatrix]):
 
     def _get_swem_vector(self, document: Sequence[str]) -> DenseMatrix:
         vectors = numpy.array([self.embeddings[token] for token in document if token in self.embeddings])
+        if len(vectors) == 0:
+            return numpy.zeros(self.embedding_dim)
         if len(vectors) < self.window_size:
             padding_size = int(numpy.ceil((self.window_size - len(vectors)) / 2))
             vectors = numpy.pad(vectors, ((padding_size, padding_size), (0, 0)), "constant")
-        output = -numpy.inf * numpy.ones(self.embedding_dim)
+        output = vectors.min() * numpy.ones(self.embedding_dim)
         for offset in range(len(vectors) - self.window_size + 1):
             window = vectors[offset : offset + self.window_size]
             output = numpy.maximum(output, window.mean(0))
-        return output
+        return cast(DenseMatrix, output)
 
     def vectorize_queries(self, queies: Sequence[Sequence[str]]) -> DenseMatrix:
         return numpy.vstack([self._get_swem_vector(query) for query in queies])

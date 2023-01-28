@@ -26,6 +26,8 @@ class SifVectorizer(Vectorizer[DenseMatrix]):
         for token in document:
             if token not in self.probabilities:
                 continue
+            if token not in self.embeddings:
+                continue
             token_probability = self.probabilities[token]
             weight = max(1e-8, self.smoothing / (self.smoothing + token_probability))
             vector += weight * self.embeddings[token]
