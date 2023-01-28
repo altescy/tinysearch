@@ -14,7 +14,8 @@ documents = [
 
 searcher = tinysearch.bm25(documents)
 # searcher = tinysearch.tfidf(documents)
-# searcher = tinysearch.transformer(documents, "bert-base-uncased")
+# searcher = tinysearch.sif(documents, embeddings="path/to/embeddings.txt")
+# searcher = tinysearch.transformer(documents, model_name="bert-base-uncased")
 
 results = searcher.search("weather windy yokohama")
 print(results)
