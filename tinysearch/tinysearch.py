@@ -52,19 +52,59 @@ class TinySearch(Generic[Document, Matrix]):
     ) -> List[Tuple[Document, float]]:
         ...
 
+    @overload
     def search(
         self,
-        query: str,
+        query: List[str],
+        *,
+        topk: Optional[int] = ...,
+    ) -> List[List[Document]]:
+        ...
+
+    @overload
+    def search(
+        self,
+        query: List[str],
+        *,
+        return_scores: Literal[False],
+        topk: Optional[int] = ...,
+    ) -> List[List[Document]]:
+        ...
+
+    @overload
+    def search(
+        self,
+        query: List[str],
+        *,
+        return_scores: Literal[True],
+        topk: Optional[int] = ...,
+    ) -> List[List[Tuple[Document, float]]]:
+        ...
+
+    def search(
+        self,
+        query: Union[str, List[str]],
         *,
         return_scores: bool = False,
         topk: Optional[int] = 10,
-    ) -> Union[List[Document], List[Tuple[Document, float]]]:
-        tokens = self.analyzer(query)
-        query_vector = self.vectorizer.vectorize_queries([tokens])
-        results = self.indexer.search(query_vector, topk=topk)[0]
+    ) -> Union[List[Document], List[Tuple[Document, float]], List[List[Document]], List[List[Tuple[Document, float]]]]:
+        return_as_batch = True
+        if isinstance(query, str):
+            query = [query]
+            return_as_batch = False
+
+        batched_tokens = [self.analyzer(q) for q in query]
+        query_vector = self.vectorizer.vectorize_queries(batched_tokens)
+        results = self.indexer.search(query_vector, topk=topk)
+
+        output: Union[List[List[Document]], List[List[Tuple[Document, float]]]]
         if return_scores:
-            return [(self.storage[id_], score) for id_, score in results]
-        return [self.storage[id_] for id_, _ in results]
+            output = [[(self.storage[id_], score) for id_, score in result] for result in results]
+        else:
+            output = [[self.storage[id_] for id_, _ in result] for result in results]
+        if return_as_batch:
+            return output
+        return output[0]
 
     def save(self, filename: Union[str, PathLike]) -> None:
         with open(filename, "wb") as pklfile:
