@@ -27,7 +27,7 @@ class InvertedIndexer(Indexer[SparseMatrix]):
     def search(self, queries: SparseMatrix, topk: Optional[int]) -> List[List[Tuple[str, float]]]:
         rows, cols = queries.nonzero()
         document_scores: List[Dict[int, float]] = [{} for _ in range(queries.shape[0])]
-        for row, col, value in zip(rows, cols, queries.data):
+        for row, col, value in zip(rows, cols, queries.data.tolist()):
             for index, score in self._inverted_index.get(col, {}).items():
                 document_scores[row][index] = document_scores[row].get(index, 0.0) + (score * value)
         return [
