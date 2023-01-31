@@ -28,6 +28,7 @@ class InvertedIndexer(Indexer[SparseMatrix]):
         rows, cols = queries.nonzero()
         document_scores: List[Dict[int, float]] = [{} for _ in range(queries.shape[0])]
         for row, col, value in zip(rows, cols, queries.data):
+            value = float(value)  # this is required for speed
             for index, score in self._inverted_index.get(col, {}).items():
                 document_scores[row][index] = document_scores[row].get(index, 0.0) + (score * value)
         return [
