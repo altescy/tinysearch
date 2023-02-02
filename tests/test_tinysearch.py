@@ -4,7 +4,7 @@ import tinysearch
 
 
 def test_version() -> None:
-    assert tinysearch.__version__ == "0.1.0"
+    assert tinysearch.__version__ == "0.2.0"
 
 
 def test_bm25() -> None:
